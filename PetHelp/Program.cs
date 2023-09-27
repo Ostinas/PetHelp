@@ -1,6 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+using PetHelp.Data;
+using PetHelp.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<PetHelpContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("PetHelpContext") ?? throw new InvalidOperationException("Connection string 'PetHelpContext' not found.")));
 
 // Add services to the container.
+
+builder.Services.AddTransient<UserRepository>();
+//builder.Services.AddTransient<PetRepository>();
+//builder.Services.AddTransient<AdRepository>();
+
 
 builder.Services.AddControllersWithViews();
 
