@@ -1,124 +1,148 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PetHelp.Data;
+﻿using Microsoft.AspNetCore.Mvc;
 using PetHelp.Models;
+using PetHelp.Repositories;
 
 namespace PetHelp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/pets/{petId}/[controller]")]
     [ApiController]
     public class AdsController : ControllerBase
     {
-        private readonly PetHelpContext _context;
+        private readonly AdRepository _adRepository;
+        private readonly PetRepository _petRepository;
 
-        public AdsController(PetHelpContext context)
+        public AdsController(AdRepository adRepository, PetRepository petRepository)
         {
-            _context = context;
+            _adRepository = adRepository;
+            _petRepository = petRepository;
         }
 
-        // GET: api/Ads
+        // GET: api/pets/{petId}/Ads
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Ad>>> GetAd()
+        public async Task<ActionResult<List<Ad>>> GetAds(int petId)
         {
-          if (_context.Ad == null)
-          {
-              return NotFound();
-          }
-            return await _context.Ad.ToListAsync();
-        }
+            var pet = await _petRepository.GetPet(petId);
 
-        // GET: api/Ads/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Ad>> GetAd(int id)
-        {
-          if (_context.Ad == null)
-          {
-              return NotFound();
-          }
-            var ad = await _context.Ad.FindAsync(id);
+            if (pet == null)
+            {
+                return NotFound("Pet not found");
+            }
 
-            if (ad == null)
+            var ads = await _adRepository.GetAds(petId);
+
+            if (ads == null)
             {
                 return NotFound();
             }
 
-            return ad;
+            return Ok(ads);
         }
 
-        // PUT: api/Ads/5
+        // GET: api/pets/{petId}/Ads/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Ad>> GetAd(int id, int petId)
+        {
+            var pet = await _petRepository.GetPet(petId);
+
+            if (pet == null)
+            {
+                return NotFound("Pet not found");
+            }
+
+            var ad = await _adRepository.GetAd(id, petId);
+
+            if (ad == null)
+            {
+                return NotFound("Ad not found");
+            }
+
+            return Ok(ad);
+        }
+
+        // PUT: api/pets/{petId}/Ads/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAd(int id, Ad ad)
+        public async Task<IActionResult> PutAd(int id, Ad ad, int petId)
         {
+            var pet = await _petRepository.GetPet(petId);
+
+            if (pet == null)
+            {
+                return NotFound("Pet not found");
+            }
+
             if (id != ad.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(ad).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                ad = await _adRepository.PutAd(id, ad, petId);
             }
-            catch (DbUpdateConcurrencyException)
+            catch
             {
-                if (!AdExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return BadRequest();
             }
 
-            return NoContent();
-        }
-
-        // POST: api/Ads
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Ad>> PostAd(Ad ad)
-        {
-          if (_context.Ad == null)
-          {
-              return Problem("Entity set 'PetHelpContext.Ad'  is null.");
-          }
-            _context.Ad.Add(ad);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetAd", new { id = ad.Id }, ad);
-        }
-
-        // DELETE: api/Ads/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAd(int id)
-        {
-            if (_context.Ad == null)
-            {
-                return NotFound();
-            }
-            var ad = await _context.Ad.FindAsync(id);
             if (ad == null)
             {
                 return NotFound();
             }
 
-            _context.Ad.Remove(ad);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return Ok(ad);
         }
 
-        private bool AdExists(int id)
+        // POST: api/pets/{petId}/Ads
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<Ad>> PostAd(Ad ad, int petId)
         {
-            return (_context.Ad?.Any(e => e.Id == id)).GetValueOrDefault();
+            var pet = await _petRepository.GetPet(petId);
+
+            if (pet == null)
+            {
+                NotFound("Pet not found");
+            }
+
+            ad = await _adRepository.PostAd(ad, petId);
+
+            if (ad == null)
+            {
+                return BadRequest();
+            }
+
+            return CreatedAtAction("GetAd", new { id = ad.Id }, ad);
+        }
+
+        // DELETE: api/pets/{petId}/Ads/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAd(int id, int petId)
+        {
+            var pet = await _petRepository.GetPet(petId);
+
+            if (pet == null)
+            {
+                return NotFound("Pet not found");
+            }
+
+            var ad = await _adRepository.GetAd(id, petId);
+
+            if (ad == null)
+            {
+                return NotFound("Ad not found");
+            }
+
+            try
+            {
+                await _adRepository.DeleteAd(id);
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
+
+            return NoContent();
         }
     }
 }

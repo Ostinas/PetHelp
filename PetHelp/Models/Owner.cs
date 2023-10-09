@@ -1,6 +1,6 @@
 ﻿namespace PetHelp.Models
 {
-    public class User
+    public class Owner
     {
         public int Id { get; set; }
 
@@ -16,9 +16,7 @@
 
         public string City { get; set; }
 
-        public ICollection<Ad> Ads { get; set; }
-        public ICollection<Pet> Pets { get; set; }
-
-
+        public List<Ad>? Ads { get; set; }
+        public List<Pet>? Pets { get; set; }
     }
 }

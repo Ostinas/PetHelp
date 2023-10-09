@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -13,103 +14,98 @@ namespace PetHelp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PetsController : ControllerBase
+    public class OwnersController : ControllerBase
     {
-        private readonly PetRepository _petRepository;
+        private readonly OwnerRepository _ownerRepository;
 
-        public PetsController(PetRepository petRepository)
+        public OwnersController(OwnerRepository ownerRepository)
         {
-            _petRepository = petRepository;
+            _ownerRepository = ownerRepository;
         }
 
-        // GET: api/Pets
+        // GET: api/Owners
         [HttpGet]
-        public async Task<ActionResult<List<Pet>>> GetPets()
+        public async Task<ActionResult<List<Owner>>> GetOwners()
         {
-            var pets = await _petRepository.GetPets();
+            var owners = await _ownerRepository.GetOwners();
 
-            if (pets == null)
+            if (owners == null)
             {
                 return NotFound();
             }
 
-            return Ok(pets);
+            return Ok(owners);
         }
 
-        // GET: api/Pets/5
+        // GET: api/Owners/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Pet>> GetPet(int id)
+        public async Task<ActionResult<Owner>> GetOwner(int id)
         {
-            var pet = await _petRepository.GetPet(id);
+            var owner = await _ownerRepository.GetOwner(id);
 
-            if (pet == null)
+            if (owner == null)
             {
                 return NotFound();
             }
 
-            return Ok(pet);
+            return Ok(owner);
         }
 
-        // PUT: api/Pets/5
+        // PUT: api/Owners/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPet(int id, Pet pet)
+        public async Task<IActionResult> PutOwner(int id, Owner owner)
         {
-            if (id != pet.Id)
+            if (id != owner.Id)
             {
                 return BadRequest();
             }
 
             try
             {
-                await _petRepository.PutPet(id, pet);
+                await _ownerRepository.PutOwner(id, owner);
             }
             catch
             {
                 return StatusCode(500);
             }
 
-            return Ok(pet);
+            return Ok(owner);
         }
 
-        // POST: api/Pets
+        // POST: api/Owners
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Pet>> PostPet(Pet pet)
+        public async Task<ActionResult<Owner>> PostOwner(Owner owner)
         {
-            var currentPet = await _petRepository.GetPet(pet.Id);
+            int id;
 
-            if (currentPet != null)
+            try
+            {
+                id = await _ownerRepository.PostOwner(owner);
+            }
+            catch
             {
                 return BadRequest();
             }
 
-            try
-            {
-                await _petRepository.PostPet(pet);
-            }
-            catch
-            {
-                return StatusCode(500);
-            }
-
-            return CreatedAtAction(nameof(GetPet), new { id = pet.Id }, pet);
+            return CreatedAtAction("GetOwner", id, owner);
         }
 
-        // DELETE: api/Pets/5
+        // DELETE: api/Owners/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePet(int id)
+        public async Task<IActionResult> DeleteOwner(int id)
         {
-            var pet = await _petRepository.GetPet(id);
+            var owner = await _ownerRepository.GetOwner(id);
 
-            if (pet == null)
+            if (owner == null)
             {
                 return NotFound();
             }
 
             try
             {
-                await _petRepository.DeletePet(id);
+                await _ownerRepository.DeleteOwner(id);
             }
             catch
             {

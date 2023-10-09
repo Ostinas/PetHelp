@@ -14,26 +14,31 @@ namespace PetHelp.Data
         {
         }
 
-        public DbSet<PetHelp.Models.User> User { get; set; } = default!;
-        public DbSet<PetHelp.Models.Pet> Pet { get; set; } = default!;
-        public DbSet<PetHelp.Models.Ad> Ad { get; set; } = default!;
+        public DbSet<PetHelp.Models.Owner> Owners { get; set; } = default!;
+        public DbSet<PetHelp.Models.Applicant> Applicants { get; set; } = default!;
+        public DbSet<PetHelp.Models.Pet> Pets { get; set; } = default!;
+        public DbSet<PetHelp.Models.Ad> Ads { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Owner>()
                 .HasMany(u => u.Ads)
-                .WithOne(a => a.User)
-                .HasForeignKey(a => a.UserId);
+                .WithOne(a => a.Owner)
+                .HasForeignKey(a => a.OwnerId);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<Owner>()
                 .HasMany(u => u.Pets)
-                .WithOne(p => p.User)
-                .HasForeignKey(p => p.UserId);
+                .WithOne(p => p.Owner)
+                .HasForeignKey(p => p.OwnerId);
 
             modelBuilder.Entity<Ad>()
                 .HasOne(a => a.Pet)
                 .WithOne(p => p.Ad)
                 .HasForeignKey<Pet>(p => p.AdId);
+
+            modelBuilder.Entity<Applicant>()
+                .HasMany(u => u.Ads)
+                .WithMany(a => a.Applicants);
         }
     }
 }

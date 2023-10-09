@@ -14,12 +14,12 @@ namespace PetHelp.Models
 
         public int Age { get; set; }
 
-        public int UserId { get; set; } 
+        public int OwnerId { get; set; } 
 
-        public User User { get; set; }
+        public Owner? Owner { get; set; }
 
         public int? AdId { get; set; }
 
-        public Ad Ad { get; set; }
+        public Ad? Ad { get; set; }
     }
 }

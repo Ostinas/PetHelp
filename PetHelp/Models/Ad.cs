@@ -16,13 +16,15 @@
 
         public decimal? Pay { get; set; }
 
-        public int UserId { get; set; }
+        public int OwnerId { get; set; }
 
-        public User User { get; set; }
+        public Owner? Owner { get; set; }
 
         public int PetId { get; set; }
 
-        public Pet Pet { get; set; }
+        public Pet? Pet { get; set; }
+
+        public List<Applicant>? Applicants { get; set; }
 
     }
 }

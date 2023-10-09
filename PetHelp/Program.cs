@@ -8,12 +8,14 @@ builder.Services.AddDbContext<PetHelpContext>(options =>
 
 // Add services to the container.
 
-builder.Services.AddTransient<UserRepository>();
-//builder.Services.AddTransient<PetRepository>();
-//builder.Services.AddTransient<AdRepository>();
+builder.Services.AddTransient<PetRepository>();
+builder.Services.AddTransient<AdRepository>();
+builder.Services.AddTransient<OwnerRepository>();
+builder.Services.AddTransient<ApplicantRepository>();
 
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 
 builder.Services.AddSwaggerGen();
 
