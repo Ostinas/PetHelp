@@ -16,8 +16,6 @@ namespace PetHelp.Repositories
         public async Task<List<Pet>> GetPets()
         {
             return await _context.Pets
-                .Include(u => u.Owner)
-                .Include(u => u.Ad)
                 .ToListAsync();
         }
 
@@ -25,8 +23,6 @@ namespace PetHelp.Repositories
         {
             return await _context.Pets
                 .Where(p => p.Id == id)
-                .Include(u => u.Owner)
-                .Include(u => u.Ad)
                 .FirstOrDefaultAsync();
         }
 

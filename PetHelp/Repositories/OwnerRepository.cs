@@ -16,16 +16,12 @@ namespace PetHelp.Repositories
         public async Task<List<Owner>> GetOwners()
         {
             return await _context.Owners
-                .Include(u => u.Pets)
-                .Include(u => u.Ads)
                 .ToListAsync();
         }
 
         public async Task<Owner> GetOwner(int id)
         {
             return await _context.Owners
-                .Include(u => u.Pets)
-                .Include(u => u.Ads)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 

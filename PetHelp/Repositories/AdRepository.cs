@@ -17,8 +17,6 @@ namespace PetHelp.Repositories
         public async Task<List<Ad>> GetAds(int petId)
         {
             return await _context.Ads
-                .Include(u => u.Applicants)
-                .Include(u => u.Pet)
                 .Where(u => u.PetId == petId)
                 .ToListAsync();
         }
@@ -27,8 +25,6 @@ namespace PetHelp.Repositories
         {
             return await _context.Ads
                 .Where(a => a.Id == id && a.PetId == petId)
-                .Include(u => u.Applicants)
-                .Include(u => u.Pet)
                 .FirstOrDefaultAsync();
         }
 
