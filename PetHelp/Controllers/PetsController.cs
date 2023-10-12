@@ -55,18 +55,20 @@ namespace PetHelp.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPet(int id, Pet pet)
         {
-            if (id != pet.Id)
+            var petExists = _petRepository.PetExists(id);
+
+            if (!petExists)
             {
-                return BadRequest();
+                return NotFound("Pet not found");
             }
 
             try
             {
                 await _petRepository.PutPet(id, pet);
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500);
+                return BadRequest(ex.Message);
             }
 
             return Ok(pet);
@@ -77,13 +79,6 @@ namespace PetHelp.Controllers
         [HttpPost]
         public async Task<ActionResult<Pet>> PostPet(Pet pet)
         {
-            var currentPet = await _petRepository.GetPet(pet.Id);
-
-            if (currentPet != null)
-            {
-                return BadRequest();
-            }
-
             try
             {
                 await _petRepository.PostPet(pet);

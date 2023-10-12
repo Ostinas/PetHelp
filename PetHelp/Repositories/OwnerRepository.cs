@@ -31,11 +31,7 @@ namespace PetHelp.Repositories
 
         public async Task<int> PutOwner(int id, Owner owner)
         {
-            if (!OwnerExists(id))
-            {
-                return 0;
-            }
-
+            owner.Id = id;
             _context.Entry(owner).State = EntityState.Modified;
 
             try
@@ -71,7 +67,7 @@ namespace PetHelp.Repositories
             return 1;
         }
 
-        private bool OwnerExists(int id)
+        public bool OwnerExists(int id)
         {
             return (_context.Owners?.Any(e => e.Id == id)).GetValueOrDefault();
         }

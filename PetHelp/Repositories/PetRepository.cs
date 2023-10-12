@@ -34,11 +34,6 @@ namespace PetHelp.Repositories
         {
             pet.Id = id;
 
-            if (!PetExists(id))
-            {
-                return 0;
-            }
-
             _context.Entry(pet).State = EntityState.Modified;
 
             try
@@ -74,7 +69,7 @@ namespace PetHelp.Repositories
             return 1;
         }
 
-        private bool PetExists(int id)
+        public bool PetExists(int id)
         {
             return (_context.Pets?.Any(e => e.Id == id)).GetValueOrDefault();
         }

@@ -90,7 +90,7 @@ namespace PetHelp.Repositories
             return 1;
         }
 
-        private bool AdExists(int id, int petId)
+        public bool AdExists(int id, int petId)
         {
             return (_context.Ads?.Any(e => e.Id == id && e.PetId == petId)).GetValueOrDefault();
         }

@@ -56,18 +56,20 @@ namespace PetHelp.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOwner(int id, Owner owner)
         {
-            if (id != owner.Id)
+            var ownerExists = _ownerRepository.OwnerExists(id);
+
+            if (!ownerExists)
             {
-                return BadRequest();
+                return NotFound("Owner not found");
             }
 
             try
             {
                 await _ownerRepository.PutOwner(id, owner);
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500);
+                return BadRequest(ex.Message);
             }
 
             return Ok(owner);

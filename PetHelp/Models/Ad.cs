@@ -2,7 +2,7 @@
 {
     public class Ad
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         public string MeetingAddress { get; set; }
 

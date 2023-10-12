@@ -71,18 +71,20 @@ namespace PetHelp.Controllers
                 return NotFound("Pet not found");
             }
 
-            if (id != ad.Id)
+            var adExists = _adRepository.AdExists(id, petId);
+
+            if (!adExists)
             {
-                return BadRequest();
+                return NotFound("Ad not found");
             }
 
             try
             {
                 ad = await _adRepository.PutAd(id, ad, petId);
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
 
             if (ad == null)

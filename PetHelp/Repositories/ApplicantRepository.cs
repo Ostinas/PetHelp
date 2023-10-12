@@ -29,11 +29,7 @@ namespace PetHelp.Repositories
 
         public async Task<Applicant> PutApplicant(int petId, int adId, int id, Applicant applicant)
         {
-            if (!ApplicantExists(id))
-            {
-                return null;
-            }
-
+            applicant.Id = id;
             var existingApplicant = _context.Applicants.Local.SingleOrDefault(e => e.Id == id);
             if (existingApplicant != null)
             {
@@ -80,7 +76,7 @@ namespace PetHelp.Repositories
             return 1;
         }
 
-        private bool ApplicantExists(int id)
+        public bool ApplicantExists(int id)
         {
             return (_context.Applicants?.Any(e => e.Id == id)).GetValueOrDefault();
         }
