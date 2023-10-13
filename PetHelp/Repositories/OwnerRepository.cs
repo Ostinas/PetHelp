@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PetHelp.Data;
+using PetHelp.Dtos;
 using PetHelp.Models;
+using System.Net;
 
 namespace PetHelp.Repositories
 {
@@ -13,16 +15,34 @@ namespace PetHelp.Repositories
             _context = context;
         }
 
-        public async Task<List<Owner>> GetOwners()
+        public async Task<List<OwnerDto>> GetOwners()
         {
             return await _context.Owners
+                .Select(o => new OwnerDto
+                {
+                    Name = o.Name,
+                    Email = o.Email,
+                    Password = o.Password,
+                    PhoneNumber = o.PhoneNumber,
+                    Address = o.Address,
+                    City = o.City
+                })
                 .ToListAsync();
         }
 
-        public async Task<Owner> GetOwner(int id)
+        public async Task<OwnerDto> GetOwner(int id)
         {
             return await _context.Owners
-                .FirstOrDefaultAsync(u => u.Id == id);
+                .Where(o => o.Id == id)
+                .Select(o => new OwnerDto
+                {
+                    Name = o.Name,
+                    Email = o.Email,
+                    Password = o.Password,
+                    PhoneNumber = o.PhoneNumber,
+                    Address = o.Address,
+                    City = o.City
+                }).FirstOrDefaultAsync();
         }
 
         public async Task<int> PutOwner(int id, Owner owner)

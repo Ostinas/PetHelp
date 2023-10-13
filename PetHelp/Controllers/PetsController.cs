@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PetHelp.Data;
+using PetHelp.Dtos;
 using PetHelp.Models;
 using PetHelp.Repositories;
 
@@ -24,7 +25,7 @@ namespace PetHelp.Controllers
 
         // GET: api/Pets
         [HttpGet]
-        public async Task<ActionResult<List<Pet>>> GetPets()
+        public async Task<ActionResult<List<PetDto>>> GetPets()
         {
             var pets = await _petRepository.GetPets();
 
@@ -38,7 +39,7 @@ namespace PetHelp.Controllers
 
         // GET: api/Pets/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Pet>> GetPet(int id)
+        public async Task<ActionResult<PetDto>> GetPet(int id)
         {
             var pet = await _petRepository.GetPet(id);
 

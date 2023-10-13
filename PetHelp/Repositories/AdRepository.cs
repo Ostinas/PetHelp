@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PetHelp.Data;
+using PetHelp.Dtos;
 using PetHelp.Models;
 using System.Drawing;
 
@@ -14,17 +15,39 @@ namespace PetHelp.Repositories
             _context = context;
         }
 
-        public async Task<List<Ad>> GetAds(int petId)
+        public async Task<List<AdDto>> GetAds(int petId)
         {
             return await _context.Ads
-                .Where(u => u.PetId == petId)
+                .Where(a => a.PetId == petId)
+                .Include(a => a.Pet)
+                .Include(a => a.Owner)
+                .Select(a => new AdDto
+                {
+                    MeetingAddress = a.MeetingAddress,
+                    CareStart = a.CareStart,
+                    CareEnd = a.CareEnd,
+                    Pay = a.Pay,
+                    OwnerName = a.Owner.Name,
+                    PetName = a.Pet.Name
+                })
                 .ToListAsync();
         }
 
-        public async Task<Ad> GetAd(int id, int petId)
+        public async Task<AdDto> GetAd(int id, int petId)
         {
             return await _context.Ads
                 .Where(a => a.Id == id && a.PetId == petId)
+                .Include(a => a.Pet)
+                .Include(a => a.Owner)
+                .Select(a => new AdDto
+                {
+                    MeetingAddress = a.MeetingAddress,
+                    CareStart = a.CareStart,
+                    CareEnd = a.CareEnd,
+                    Pay = a.Pay,
+                    OwnerName = a.Owner.Name,
+                    PetName = a.Pet.Name
+                })
                 .FirstOrDefaultAsync();
         }
 

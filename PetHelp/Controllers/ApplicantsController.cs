@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PetHelp.Data;
+using PetHelp.Dtos;
 using PetHelp.Models;
 using PetHelp.Repositories;
 
@@ -32,7 +33,7 @@ namespace PetHelp.Controllers
 
         // GET: api/pets/{petId}/ads/{adId}/Applicants
         [HttpGet]
-        public async Task<ActionResult<List<Applicant>>> GetApplicants(int petId, int adId)
+        public async Task<ActionResult<List<ApplicantDto>>> GetApplicants(int petId, int adId)
         {
             var pet = await _petRepository.GetPet(petId);
             var ad = await _adRepository.GetAd(adId, petId);
@@ -57,7 +58,7 @@ namespace PetHelp.Controllers
 
         // GET: api/pets/{petId}/ads/{adId}/Applicants/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Applicant>> GetApplicant(int petId, int adId, int id)
+        public async Task<ActionResult<ApplicantDto>> GetApplicant(int petId, int adId, int id)
         {
             var pet = await _petRepository.GetPet(petId);
             var ad = await _adRepository.GetAd(adId, petId);

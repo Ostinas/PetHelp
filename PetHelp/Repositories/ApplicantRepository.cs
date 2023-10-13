@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PetHelp.Data;
+using PetHelp.Dtos;
 using PetHelp.Models;
 
 namespace PetHelp.Repositories
@@ -13,18 +14,38 @@ namespace PetHelp.Repositories
             _context = context;
         }
 
-        public async Task<List<Applicant>> GetApplicants(int petId, int adId)
+        public async Task<List<ApplicantDto>> GetApplicants(int petId, int adId)
         {
             return await _context.Applicants
                 .Where(a => a.Ads.Any(a => a.Id == adId && a.PetId == petId))
+                .Select(a => new ApplicantDto
+                {
+                    Name = a.Name,
+                    Description = a.Description,
+                    Email = a.Email,
+                    Password = a.Password,
+                    PhoneNumber = a.PhoneNumber,
+                    Address = a.Address,
+                    City = a.City
+                })
                 .ToListAsync();
         }
 
-        public async Task<Applicant> GetApplicant(int id, int petId, int adId)
+        public async Task<ApplicantDto> GetApplicant(int id, int petId, int adId)
         {
             return await _context.Applicants
-                .Where(a => a.Ads.Any(a => a.Id == adId && a.PetId == petId))
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .Where(a => a.Ads.Any(a => a.Id == adId && a.PetId == petId && a.Id == id))
+                .Select(a => new ApplicantDto
+                {
+                    Name = a.Name,
+                    Description = a.Description,
+                    Email = a.Email,
+                    Password = a.Password,
+                    PhoneNumber = a.PhoneNumber,
+                    Address = a.Address,
+                    City = a.City
+                })
+                .FirstOrDefaultAsync();
         }
 
         public async Task<Applicant> PutApplicant(int petId, int adId, int id, Applicant applicant)
