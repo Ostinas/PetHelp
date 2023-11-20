@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +56,7 @@ namespace PetHelp.Controllers
         // PUT: api/Pets/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "owner,admin")]
         public async Task<IActionResult> PutPet(int id, Pet pet)
         {
             var petExists = _petRepository.PetExists(id);
@@ -78,6 +81,7 @@ namespace PetHelp.Controllers
         // POST: api/Pets
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "owner,admin")]
         public async Task<ActionResult<Pet>> PostPet(Pet pet)
         {
             try
@@ -94,6 +98,7 @@ namespace PetHelp.Controllers
 
         // DELETE: api/Pets/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "owner,admin")]
         public async Task<IActionResult> DeletePet(int id)
         {
             var pet = await _petRepository.GetPet(id);

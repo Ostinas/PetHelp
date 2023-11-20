@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ namespace PetHelp.Controllers
 
         // GET: api/pets/{petId}/ads/{adId}/Applicants
         [HttpGet]
+        [Authorize(Roles = "owner,admin")]
         public async Task<ActionResult<List<ApplicantDto>>> GetApplicants(int petId, int adId)
         {
             var pet = await _petRepository.GetPet(petId);
@@ -58,6 +60,7 @@ namespace PetHelp.Controllers
 
         // GET: api/pets/{petId}/ads/{adId}/Applicants/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "owner,admin")]
         public async Task<ActionResult<ApplicantDto>> GetApplicant(int petId, int adId, int id)
         {
             var pet = await _petRepository.GetPet(petId);

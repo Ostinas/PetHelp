@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PetHelp.Dtos;
 using PetHelp.Models;
 using PetHelp.Repositories;
@@ -63,6 +64,7 @@ namespace PetHelp.Controllers
         // PUT: api/pets/{petId}/Ads/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "owner,admin")]
         public async Task<IActionResult> PutAd(int id, Ad ad, int petId)
         {
             var pet = await _petRepository.GetPet(petId);
@@ -99,6 +101,7 @@ namespace PetHelp.Controllers
         // POST: api/pets/{petId}/Ads
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "owner,admin")]
         public async Task<ActionResult<Ad>> PostAd(Ad ad, int petId)
         {
             var pet = await _petRepository.GetPet(petId);
@@ -120,6 +123,7 @@ namespace PetHelp.Controllers
 
         // DELETE: api/pets/{petId}/Ads/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "owner,admin")]
         public async Task<IActionResult> DeleteAd(int id, int petId)
         {
             var pet = await _petRepository.GetPet(petId);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,7 @@ namespace PetHelp.Controllers
 
         // GET: api/Owners
         [HttpGet]
+        [Authorize(Roles = "owner,admin")]
         public async Task<ActionResult<List<OwnerDto>>> GetOwners()
         {
             var owners = await _ownerRepository.GetOwners();
@@ -55,6 +57,7 @@ namespace PetHelp.Controllers
         // PUT: api/Owners/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "owner,admin")]
         public async Task<IActionResult> PutOwner(int id, Owner owner)
         {
             var ownerExists = _ownerRepository.OwnerExists(id);
@@ -79,6 +82,7 @@ namespace PetHelp.Controllers
         // POST: api/Owners
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "owner,admin")]
         public async Task<ActionResult<Owner>> PostOwner(Owner owner)
         {
             int id;
@@ -97,6 +101,7 @@ namespace PetHelp.Controllers
 
         // DELETE: api/Owners/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "owner,admin")]
         public async Task<IActionResult> DeleteOwner(int id)
         {
             var owner = await _ownerRepository.GetOwner(id);
