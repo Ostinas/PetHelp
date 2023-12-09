@@ -1,10 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration.UserSecrets;
+﻿using Microsoft.AspNetCore.Mvc;
 using PetHelp.Dtos;
-using PetHelp.Models;
 using PetHelp.Repositories;
-using System;
 
 namespace PetHelp.Controllers
 {
@@ -27,7 +23,7 @@ namespace PetHelp.Controllers
         //public async Task<IActionResult> RegisterApplicant([FromBody] OwnerDto registrationData)
         //{
         //    var hashedPasswordAndSalt = AuthHelper.HashPassword(registrationData.Password);
-            
+
         //    var owner = new Owner
         //    {
         //        Name = registrationData.Name,

@@ -1,6 +1,4 @@
-﻿using PetHelp.Models;
-
-namespace PetHelp.Dtos
+﻿namespace PetHelp.Dtos
 {
     public class PetDto
     {

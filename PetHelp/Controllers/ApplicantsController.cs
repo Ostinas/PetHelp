@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PetHelp.Data;
 using PetHelp.Dtos;
 using PetHelp.Models;
 using PetHelp.Repositories;
@@ -54,7 +47,7 @@ namespace PetHelp.Controllers
             {
                 return NotFound("No applicants found for the given pet and ad");
             }
-            
+
             return Ok(applicants);
         }
 

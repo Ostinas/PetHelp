@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace PetHelp.Models
+﻿namespace PetHelp.Models
 {
     public class Pet
     {
@@ -14,7 +12,7 @@ namespace PetHelp.Models
 
         public int Age { get; set; }
 
-        public int OwnerId { get; set; } 
+        public int OwnerId { get; set; }
 
         public Owner? Owner { get; set; }
 

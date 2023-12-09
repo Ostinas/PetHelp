@@ -20,15 +20,15 @@ namespace PetHelp.Repositories
                 .Include(u => u.Owner)
                 .Include(u => u.Ad)
                 .Select(pet => new PetDto
-            {
-                Name = pet.Name,
-                Description = pet.Description,
-                Sex = pet.Sex,
-                Age = pet.Age,
-                OwnerName = pet.Owner.Name,
-                CareStart = pet.Ad.CareStart,
-                CareEnd = pet.Ad.CareEnd
-            }).ToListAsync();
+                {
+                    Name = pet.Name,
+                    Description = pet.Description,
+                    Sex = pet.Sex,
+                    Age = pet.Age,
+                    OwnerName = pet.Owner.Name,
+                    CareStart = pet.Ad.CareStart,
+                    CareEnd = pet.Ad.CareEnd
+                }).ToListAsync();
         }
 
         public async Task<PetDto> GetPet(int id)

@@ -2,7 +2,6 @@
 using PetHelp.Data;
 using PetHelp.Dtos;
 using PetHelp.Models;
-using System.Net;
 
 namespace PetHelp.Repositories
 {

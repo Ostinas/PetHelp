@@ -1,0 +1,60 @@
+﻿@page "/login"
+
+
+@inject IDialogService DialogService
+
+<PageTitle>Login</PageTitle>
+
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.Large">
+    <MudPaper Elevation="3" Class="pa-4">
+        <MudText Typo="Typo.h5" Class="mb-4">Login</MudText>
+
+        <MudForm Model="loginInfo" OnValidSubmit="HandleSubmit">
+            <MudTextField @bind-Value="loginInfo.Email" Label="Email" InputType="InputType.Email" Required="true" />
+            <MudTextField @bind-Value="loginInfo.Password" Label="Password" InputType="InputType.Password" Required="true" />
+
+            <br />
+            <MudButton Disabled="@isProcessing" Type="ButtonType.Submit" OnClick="SubmitLoginInfo" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+                @if (isProcessing)
+                {
+                    <MudProgressCircular Size="Size.Small" />
+                }
+                Login
+            </MudButton>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    LoginInfo loginInfo = new();
+    bool isProcessing = false;
+
+    private async Task SubmitLoginInfo()
+    {
+        if (string.IsNullOrEmpty(loginInfo.Password) || string.IsNullOrEmpty(loginInfo.Email))
+        {
+            await DialogService.ShowMessageBox("Error", "Please enter your email and password.");
+            return;
+        }
+        isProcessing = true;
+        // if (loginInfo.Password.Contains("admin"))
+        //     loginInfo.Role = "admin";
+
+        var serializedModel = JsonSerializer.Serialize(loginInfo);
+        // var client = ClientFactory.CreateClient("httpClient");
+        // var authenticationResult = await client.PostAsync("api/Auth/login", new StringContent(serializedModel, Encoding.UTF8, "application/json"));
+        // _loginError = authenticationResult.StatusCode != System.Net.HttpStatusCode.Created;
+
+        // if (!_loginError)
+        // {
+        //     string token = await authenticationResult.Content.ReadAsStringAsync();
+        //     string tokenParam = $"token={Uri.EscapeDataString(token)}";
+        //     Navigation.NavigateTo($"/login-callback?{tokenParam}");
+        // }
+        // else
+        // {
+        //     _processing = false;
+        //     await DialogService.ShowMessageBox("Error", "Invalid email or password.");
+        // }
+    }
+}
