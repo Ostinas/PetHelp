@@ -5,14 +5,9 @@ using PetHelp.Models;
 
 namespace PetHelp.Repositories
 {
-    public class ApplicantRepository
+    public class ApplicantRepository(PetHelpContext context)
     {
-        private readonly PetHelpContext _context;
-
-        public ApplicantRepository(PetHelpContext context)
-        {
-            _context = context;
-        }
+        private readonly PetHelpContext _context = context;
 
         public async Task<List<ApplicantDto>> GetApplicants(int petId, int adId)
         {

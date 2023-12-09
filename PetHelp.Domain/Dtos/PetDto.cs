@@ -1,4 +1,6 @@
-﻿namespace PetHelp.Dtos
+﻿using PetHelp.Domain.Enums;
+
+namespace PetHelp.Dtos
 {
     public class PetDto
     {
@@ -6,7 +8,7 @@
 
         public string Description { get; set; }
 
-        public string Sex { get; set; }
+        public Gender Sex { get; set; }
 
         public int Age { get; set; }
 

@@ -1,19 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PetHelp.Domain.DomainModels;
 using PetHelp.Models;
 
 namespace PetHelp.Data
 {
-    public class PetHelpContext : DbContext
+    public class PetHelpContext(DbContextOptions<PetHelpContext> options) : DbContext(options)
     {
-        public PetHelpContext(DbContextOptions<PetHelpContext> options)
-            : base(options)
-        {
-        }
-
         public DbSet<Owner> Owners { get; set; } = default!;
         public DbSet<Applicant> Applicants { get; set; } = default!;
         public DbSet<Pet> Pets { get; set; } = default!;
         public DbSet<Ad> Ads { get; set; } = default!;
+        public DbSet<Admin> Admins { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +32,10 @@ namespace PetHelp.Data
             modelBuilder.Entity<Applicant>()
                 .HasMany(u => u.Ads)
                 .WithMany(a => a.Applicants);
+
+            modelBuilder.Entity<Pet>()
+                .Property(p => p.Sex)
+                .HasConversion<string>();
         }
     }
 }

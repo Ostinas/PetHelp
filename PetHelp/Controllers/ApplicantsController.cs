@@ -9,21 +9,11 @@ namespace PetHelp.Controllers
 {
     [Route("api/pets/{petId}/ads/{adId}/[controller]")]
     [ApiController]
-    public class ApplicantsController : ControllerBase
+    public class ApplicantsController(ApplicantRepository applicantRepository, PetRepository petRepository, AdRepository adRepository) : ControllerBase
     {
-        private readonly ApplicantRepository _applicantRepository;
-        private readonly PetRepository _petRepository;
-        private readonly AdRepository _adRepository;
-
-        public ApplicantsController(
-            ApplicantRepository applicantRepository,
-            PetRepository petRepository,
-            AdRepository adRepository)
-        {
-            _applicantRepository = applicantRepository;
-            _petRepository = petRepository;
-            _adRepository = adRepository;
-        }
+        private readonly ApplicantRepository _applicantRepository = applicantRepository;
+        private readonly PetRepository _petRepository = petRepository;
+        private readonly AdRepository _adRepository = adRepository;
 
         // GET: api/pets/{petId}/ads/{adId}/Applicants
         [HttpGet]

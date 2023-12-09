@@ -1,95 +1,52 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PetHelp.Dtos;
+using PetHelp.Domain;
 using PetHelp.Repositories;
 
 namespace PetHelp.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController(AuthRepository authRepository, IConfiguration config) : ControllerBase
     {
-        private readonly ILogger<AuthController> _logger;
-        private readonly AuthRepository _authRepository;
-        private readonly AuthHelper authHelper;
-
-        public AuthController(ILogger<AuthController> logger, AuthRepository authRepository, IConfiguration config)
-        {
-            _logger = logger;
-            _authRepository = authRepository;
-            authHelper = new AuthHelper(config);
-        }
-
-        //[HttpPost("register")]
-        //public async Task<IActionResult> RegisterApplicant([FromBody] OwnerDto registrationData)
-        //{
-        //    var hashedPasswordAndSalt = AuthHelper.HashPassword(registrationData.Password);
-
-        //    var owner = new Owner
-        //    {
-        //        Name = registrationData.Name,
-        //        Email = registrationData.Email,
-        //        //Salt = hashedPasswordAndSalt.salt,
-        //        Password = hashedPasswordAndSalt.hashedPassword,
-        //        PhoneNumber = registrationData.PhoneNumber,
-        //        Address = registrationData.Address,
-        //        City = registrationData.City,
-        //    };
-
-        //    try
-        //    {
-        //        _authRepository.AddUser(owner);
-
-        //        var token = authHelper.GenerateJwtToken(owner.Id, "Candidate");
-        //        return Created(string.Empty, new { Token = token });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, ex.Message);
-        //    }
-        //}
+        private readonly AuthRepository _authRepository = authRepository;
+        private readonly AuthHelper authHelper = new(config);
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginData)
+        public async Task<IActionResult> Login([FromBody] LoginInfo loginData)
         {
-            var role = loginData.Role.ToLower();
-            var userId = 0;
-            var password = string.Empty;
+            var applicant = await _authRepository.GetApplicant(loginData.Email);
 
-            if (role == "applicant")
+            if (applicant != null)
             {
-                var applicant = await _authRepository.GetApplicant(loginData.Email);
-
-                if (applicant == null)
+                if (authHelper.DoesPasswordMatch(loginData.Password, applicant.Password))
                 {
-                    return NotFound("Account not found.");
+                    return Created(string.Empty, new { Token = authHelper.GenerateJwtToken((int)applicant.Id, "applicant") });
                 }
-
-                userId = (int)applicant.Id;
-                password = applicant.Password;
             }
-            else if (role == "owner")
+
+            var owner = await _authRepository.GetOwner(loginData.Email);
+
+            if (owner != null)
             {
-                var owner = await _authRepository.GetOwner(loginData.Email);
-
-                if (owner == null)
+                if (authHelper.DoesPasswordMatch(loginData.Password, owner.Password))
                 {
-                    return NotFound("Account not found.");
+                    return Created(string.Empty, new { Token = authHelper.GenerateJwtToken((int)owner.Id, "owner") });
                 }
-
-                userId = (int)owner.Id;
-                password = owner.Password;
             }
-            else if (role == "admin")
+
+            var admin = await _authRepository.GetAdmin(loginData.Email);
+
+            if (admin != null && authHelper.DoesPasswordMatch(loginData.Password, admin.Password))
             {
                 var token = authHelper.GenerateJwtToken(-1, "admin");
                 return Created(string.Empty, new { Token = token });
             }
 
-            if (authHelper.DoesPasswordMatch(loginData.Password, password))
+            if (applicant == null && owner != null && admin == null)
             {
-                var token = authHelper.GenerateJwtToken(userId, role);
-                return Created(string.Empty, new { Token = token });
+                return NotFound("Account not found.");
             }
+
             return Unauthorized();
         }
     }

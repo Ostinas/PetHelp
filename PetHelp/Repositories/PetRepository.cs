@@ -5,14 +5,9 @@ using PetHelp.Models;
 
 namespace PetHelp.Repositories
 {
-    public class PetRepository
+    public class PetRepository(PetHelpContext context)
     {
-        private readonly PetHelpContext _context;
-
-        public PetRepository(PetHelpContext context)
-        {
-            _context = context;
-        }
+        private readonly PetHelpContext _context = context;
 
         public async Task<List<PetDto>> GetPets()
         {
