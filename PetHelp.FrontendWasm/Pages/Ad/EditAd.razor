@@ -1,5 +1,190 @@
-﻿<h3>EditAd</h3>
+﻿@page "/pets/{petId:int}/ads/edit/{adId:int}"
+
+@inject NavigationManager Navigate
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject HttpClient httpClient
+@inject IDialogService DialogService
+
+<PageTitle>Edit ad</PageTitle>
+
+<MudContainer Class="mt-16 px-8">
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="10" xl="8" Class="mx-auto">
+            <MudPaper Elevation="2" Class="pa-4 my-2">
+                @if (pet == null && ad == null)
+                {
+                    <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto" />
+                    </MudContainer>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h4">Edit ad for @pet.Name</MudText>
+                    <EditForm Model="ad" OnValidSubmit="@Edit" OnInvalidSubmit="@InvalidSubmit">
+                        <DataAnnotationsValidator />
+                        <MudTextField T="string"
+                                      Label="Pet description"
+                                      Variant="Variant.Outlined"
+                                      Disabled="true"
+                                      @bind-Value="@pet.Description"
+                                      Class="mt-5" />
+                        <MudTextField T="int"
+                                      Label="Age"
+                                      Variant="Variant.Outlined"
+                                      Disabled="true"
+                                      @bind-Value="@pet.Age"
+                                      Class="mt-5" />
+                        <MudTextField T="string"
+                                      Label="Gender"
+                                      Variant="Variant.Outlined"
+                                      Disabled="true"
+                                      @bind-Value="@pet.Sex"
+                                      Class="mt-5" />
+                        <MudTextField T="string"
+                                      Label="Meeting address"
+                                      Variant="Variant.Outlined"
+                                      Counter="25"
+                                      MaxLength="25"
+                                      Immediate="true"
+                                      Validation="@(new Func<string, IEnumerable<string>>(ValidateAddress))"
+                                      @bind-Value="@ad.MeetingAddress"
+                                      Required="true"
+                                      FullWidth="true"
+                                      Class="mt-5" />
+                        <MudTextField T="decimal?"
+                                      Variant="Variant.Outlined"
+                                      Validation="@(new Func<decimal, IEnumerable<string>>(ValidatePay))"
+                                      Placeholder="Pay"
+                                      @bind-Value="@ad.Pay"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Euro"
+                                      InputType="InputType.Number"
+                                      FullWidth="true"
+                                      Class="mt-3" />
+                        <MudGrid Class="mt-2">
+                            <MudItem xs="12" sm="6">
+                                <MudDatePicker Variant="Variant.Outlined"
+                                               Label="Start date of needed care"
+                                               DisableToolbar="true"
+                                               @bind-Date="@careStart" />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudDatePicker Variant="Variant.Outlined"
+                                               Label="End date of needed care"
+                                               DisableToolbar="true"
+                                               @bind-Date="@careEnd" />
+                            </MudItem>
+                        </MudGrid>
+                        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-6" FullWidth="true">Save</MudButton>
+                    </EditForm>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
 
 @code {
+    bool _loggedIn = false;
+    int _userId;
+    string _userRole;
+    [Parameter] public int petId { get; set; }
+    [Parameter] public int adId { get; set; }
 
+    bool _isOwner = false;
+    bool _isAdmin = false;
+
+    PetDto? pet;
+    AdDto? ad;
+    Ad editedAd = new();
+    DateTime? careStart = DateTime.Today;
+    DateTime? careEnd = DateTime.Today.AddDays(1);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (_loggedIn)
+        {
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
+            _userRole = user.FindFirst("role")?.Value ?? "applicant";
+
+            if (_userRole == "owner")
+            {
+                _isOwner = true;
+            }
+            else if (_userRole == "admin")
+            {
+                _isOwner = true;
+                _isAdmin = true;
+            }
+        }
+        else
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged and own this ad to edit it.");
+            Navigate.NavigateTo("/");
+            return;
+        }
+
+        if (_isOwner || _isAdmin)
+        {
+            pet = await httpClient.GetFromJsonAsync<PetDto>($"api/pets/{petId}");
+            ad = await httpClient.GetFromJsonAsync<AdDto>($"api/pets/{petId}/ads/{adId}");
+            careStart = ad.CareStart;
+            careEnd = ad.CareEnd;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Edit()
+    {
+        try
+        {
+            editedAd.CareStart = (DateTime)careStart;
+            editedAd.CareEnd = (DateTime)careEnd;
+            editedAd.OwnerId = _userId;
+            editedAd.PetId = petId;
+            var response = await httpClient.PutAsJsonAsync($"api/pets/{petId}/ads/{adId}", editedAd);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                await DialogService.ShowMessageBox("Error", "An error occurred while creating ad.");
+            }
+            else
+            {
+                await DialogService.ShowMessageBox("Success", $"You have successfully created a new ad for {pet.Name}.");
+                Navigate.NavigateTo("/ads/{adId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowMessageBox("Error", $"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task InvalidSubmit()
+    {
+        await DialogService.ShowMessageBox("Error", "Please correct any missing fields before saving.");
+    }
+
+    private IEnumerable<string> ValidateAddress(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 25 < ch?.Length)
+            yield return "The meeting address cannot be longer than 25 characters!";
+    }
+
+    private IEnumerable<string> ValidatePay(decimal pay)
+    {
+        if (pay < 0)
+            yield return "Pay cannot be less than 0!";
+    }
+
+    private IEnumerable<string> ValidateAge(int age)
+    {
+        if (age > 25)
+            yield return "Is the pet really so old?";
+    }
 }
+
+
