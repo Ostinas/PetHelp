@@ -17,7 +17,10 @@
             <div style="display: flex; flex-direction: row;">
                 <MudButton Href="/" Style="color:white">Home</MudButton>
                 <MudButton Href="/ads" Style="color:white">Browse ads</MudButton>
-                @* <MudButton Href="/companies" Style="color:white">Browse Companies</MudButton> *@
+                @if (IsOwner)
+                {
+                    <MudButton Href="/pets" Style="color:white">My pets</MudButton>
+                }
                 @* <MudButton Href="/applications" Style="color:white">Applications</MudButton> *@
             </div>
         </MudHidden>
@@ -69,21 +72,34 @@
     <MudMainContent Style="flex-grow: 1; padding-bottom:60px;">
         @Body
     </MudMainContent>
-    @* <footer style="width: 100vw; z-index: 1100; position: relative; height: 48px; background-color:rgba(158,158,158,1); max-width:100%; display: flex; justify-content: space-between; align-items: center; padding: 0 1rem;">
-        <MudText Typo="Typo.subtitle2" Style="color:white">
-            © 2023 Ostinas Mačiulis
-        </MudText>
-    </footer> *@
+    <MudAppBar Elevation="1" Style="top: auto; bottom: 0" Dense="true" Fixed="true">
+        <MudGrid Justify="Justify.FlexEnd">
+            <MudText Style="font-size:small">© 2023 Ostinas Mačiulis</MudText>
+        </MudGrid>
+    </MudAppBar>
 </MudLayout>
+
 @code {
     bool _drawerOpen = true;
     bool _loggedIn = false;
+    bool IsOwner = false;
+    string? userRole;
 
     protected override async Task OnInitializedAsync()
     {
         var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (_loggedIn)
+        {
+            userRole = user.FindFirst("role")?.Value ?? "applicant";
+            if (userRole == "owner")
+            {
+                IsOwner = true;
+                StateHasChanged();
+            }
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -91,6 +107,12 @@
         var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        // if (_loggedIn)
+        // {
+        //     userRole = user.FindFirst("role")?.Value ?? "applicant";
+        //     StateHasChanged();
+        // }
     }
 
     void DrawerToggle()

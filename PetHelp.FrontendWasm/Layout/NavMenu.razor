@@ -1,8 +1,40 @@
-﻿@* <MudNavMenu> *@
-    <MudNavLink Href="/login" Match="NavLinkMatch.Prefix">Login</MudNavLink>
+﻿@inject TokenAuthStateProvider TokenAuthStateProvider
+
+<MudNavMenu>
     <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
-    <MudNavGroup Title="Settings" Expanded="false">
-        <MudNavLink Href="/users" Match="NavLinkMatch.Prefix">Users</MudNavLink>
-        <MudNavLink Href="/security" Match="NavLinkMatch.Prefix">Security</MudNavLink>
-    </MudNavGroup>
-@* </MudNavMenu> *@
+    <MudNavLink Href="/ads" Match="NavLinkMatch.Prefix">Browse ads</MudNavLink>
+    @if (userRole == "owner")
+    {
+        <MudNavLink Href="/pets" Match="NavLinkMatch.Prefix">My pets</MudNavLink>
+    }
+</MudNavMenu>
+
+@code {
+    bool _drawerOpen = true;
+    string? userRole;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var isLoggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (isLoggedIn)
+        {
+            userRole = user.FindFirst("role")?.Value ?? "applicant";
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var isLoggedIn = authState.User.Identity.IsAuthenticated;
+    }
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

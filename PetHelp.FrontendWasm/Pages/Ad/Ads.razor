@@ -10,51 +10,42 @@
 <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
     <MudGrid>
         <!-- Actions -->
-        <MudItem lg="8" md="8" sm="12" xs="12">
-            <MudPaper Elevation="2" Class="pa-4 overflow-auto" Height="17vh">
-                @if (_loggingIn)
-                {
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" Class="ma-4" />
-                }
-
-
-                @if (_loggedIn)
-                {
+        @if (_loggedIn)
+        {
+            <MudItem lg="6" md="6" sm="12" xs="12">
+                <MudPaper Elevation="2" Class="pa-4 overflow-auto" Height="17vh">
                     <!-- Authenticated -->
                     @if (_isApplicant)
                     {
-
                         <MudButton Href="/applications" FullWidth="true" Variant="Variant.Outlined">
                             <ChildContent>
                                 <MudIcon Icon="@Icons.Material.Outlined.WorkOutline" Class="mr-1" />
                                 <MudText Typo="Typo.button" Color="Color.Inherit">View applications</MudText>
                             </ChildContent>
                         </MudButton>
-
                     }
 
-                    if (_isOwner)
+                    @if (_isOwner)
                     {
                         <MudListItem>
                             <MudButton OnClick="OpenCreateAdForPetDialog" FullWidth="true" Variant="Variant.Outlined">
                                 <ChildContent>
-                                    <MudIcon Icon="@Icons.Material.Outlined.Pets" Class="mr-1" />
+                                    <MudIcon Icon="@Icons.Material.Filled.AddCircle" Class="mr-1" />
                                     <MudText Typo="Typo.button" Color="Color.Inherit">Create a new ad</MudText>
                                 </ChildContent>
                             </MudButton>
                         </MudListItem>
                     }
-                }
-            </MudPaper>
-        </MudItem>
-
+                </MudPaper>
+            </MudItem>
+        }
         @if (_isOwner)
         {
             <!-- Owner ads -->
             <MudItem xs="12" sm="12">
-                <MudPaper Elevation="2" Class="pa-4 overflow-auto" MaxHeight="1000px">
-                    <MudText Typo="Typo.h5" Class="pa-3">My ads</MudText>
-                    @if (_loading)
+                <MudPaper Elevation="2" Class="pa-4; overflow-auto" MaxHeight="1000px">
+                    <MudText Typo="Typo.h5" Class="pa-4">My ads</MudText>
+                    @if (OwnerAds == null)
                     {
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
                     }
@@ -66,7 +57,7 @@
                                 <MudDivider />
                                 <MudListItem @onclick="(e) => OpenAd(ad.Id, ad.PetId) ">
                                     <MudText Typo="Typo.h5">@ad.PetName</MudText>
-                                    @if (ad.Pay > 0)
+                                        @if (ad.Pay > 0)
                                     {
                                         <MudText Typo="Typo.h5">@ad.Pay</MudText>
                                     }
@@ -79,40 +70,43 @@
                 </MudPaper>
             </MudItem>
         }
-        else
-        {
-            <!-- Latest Ads -->
-            <MudItem xs="12" sm="12">
-                <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="90vh" MaxHeight="1000px">
-                    <MudText Typo="Typo.h5" Class="pa-4">All ads</MudText>
-                    @if (_loading)
-                    {
-                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
-                    }
-                    else
-                    {
-                        <MudList Clickable="true">
-                            @* @foreach (var ad in LatestAds)
-                    {
-                    <MudDivider />
-                    <MudListItem @onclick="(e) => OpenAdDialog(ad)">
-                    <MudText Typo="Typo.h6">@ad.Title</MudText>
-                    <MudText>@ad.Company.CompanyName | @ad.Location</MudText>
-                    <MudSpacer />
-                    <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">€@ad.SalaryFrom - €@ad.SalaryTo</MudText>
-                    <MudText Style="color:gray" Typo="Typo.body2">Posted: @ad.PostedDate</MudText>
-                    </MudListItem>
-                    } *@
-                        </MudList>
-                    }
-                </MudPaper>
-            </MudItem>
-        }
+        <!-- other ads -->
+        <MudItem xs="12" sm="12">
+            <!-- <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="90vh" MaxHeight="1000px">-->
+            <MudPaper Elevation="2" Class="pa-4; overflow-auto" MaxHeight="1000px">
+                <MudText Typo="Typo.h5" Class="pa-4">All active ads</MudText>
+                @if (LatestAds == null)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
+                }
+                else if (LatestAds.Count == 0)
+                {
+                    <MudText Typo="Typo.subtitle1" Class="px-4 pb-3">There are no other ads currently</MudText>
+                }
+                else
+                {
+                    <MudList Clickable="true">
+                        @foreach (var ad in LatestAds)
+                        {
+                            <MudDivider />
+                            <MudListItem @onclick="(e) => OpenAd(ad.Id, ad.PetId) ">
+                                <MudText Typo="Typo.h5">@ad.PetName</MudText>
+                                    @if (ad.Pay > 0)
+                                {
+                                    <MudText Typo="Typo.h5">@ad.Pay</MudText>
+                                }
+                                <MudText><b>Care start date:</b> @ad.CareStart</MudText>
+                                <MudText><b>Care end date:</b> @ad.CareEnd</MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+            </MudPaper>
+        </MudItem>
     </MudGrid>
 </MudContainer>
 
 @code {
-    @*  *@
     bool _loggedIn = false;
     bool _loggingIn = true;
     int _userId;
@@ -122,14 +116,10 @@
     bool _isApplicant = false;
     bool _isAdmin = false;
 
-    List<Ad> LatestAds = new List<Ad>();
+    List<AdDto>? LatestAds;
     List<Owner> AllOwners = new List<Owner>();
     List<AdDto>? OwnerAds;
     List<PetDto> OwnerPets = new List<PetDto>();
-    // List<ApplicationResponseVM> AllApplications = new List<ApplicationResponseVM>();
-    bool _loading = true;
-
-    HttpClient client;
 
     protected override async Task OnInitializedAsync()
     {
@@ -159,6 +149,17 @@
         }
         _loggingIn = false;
 
+        var allPets = await httpClient.GetFromJsonAsync<List<PetDto>>("api/pets");
+        var petIds = allPets.Where(p => p.CareStart != null).ToList();
+
+        var allAdTasks = petIds.Select(pet => httpClient.GetFromJsonAsync<List<AdDto>>($"api/pets/{pet.Id}/ads")).ToList();
+        var allAds = await Task.WhenAll(allAdTasks);
+        LatestAds = new();
+        foreach (var adList in allAds)
+        {
+            LatestAds.AddRange(adList);
+        }
+
         if (_isOwner)
         {
             var pets = await httpClient.GetFromJsonAsync<List<PetDto>>("api/pets");
@@ -171,7 +172,8 @@
             {
                 OwnerAds.AddRange(adList);
             }
-            _loading = false;
+
+            LatestAds = LatestAds.Where(ad => !OwnerAds.Any(ownerAd => ownerAd.Id == ad.Id)).ToList();
         }
     }
 

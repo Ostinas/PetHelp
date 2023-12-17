@@ -16,7 +16,6 @@
                     <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" Class="ma-4" />
                 }
 
-
                 @if (_loggedIn)
                 {
                     <!-- Authenticated -->
@@ -43,15 +42,6 @@
                             </MudButton>
                         </MudListItem>
                     }
-
-                    @* <MudListItem>
-                <MudButton Href="/logout" FullWidth="true" Variant="Variant.Outlined">
-                <ChildContent>
-                <MudIcon Icon="@Icons.Material.Outlined.ExitToApp" Class="mr-1" />
-                <MudText Typo="Typo.button" Color="Color.Inherit">Logout</MudText>
-                </ChildContent>
-                </MudButton>
-                </MudListItem> *@
                 }
                 else if (!_loggingIn)
                 {
@@ -89,9 +79,9 @@
         {
             <!-- Owner pets -->
             <MudItem xs="12" sm="12">
-                <MudPaper Elevation="2" Class="pa-4 overflow-auto" MaxHeight="1000px">
+                <MudPaper Elevation="2" Class="pa-4; overflow-auto" MaxHeight="1000px">
                     <MudText Typo="Typo.h5" Class="pa-3">My pets</MudText>
-                    @if (_loading)
+                    @if (OwnerPets == null)
                     {
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
                     }
@@ -103,46 +93,46 @@
                                 <MudDivider />
                                 <MudListItem @onclick="(e) => OpenPetDialog(pet.Id, pet.Name) ">
                                     <MudText Typo="Typo.h5">@pet.Name</MudText>
-                                    <MudText Typo="Typo.h6">@pet.Description</MudText>
-                                    <MudText> Gender: @pet.Sex </MudText>
-                                    <MudText> Age: @pet.Age </MudText>
-                                        @*<MudText Style="color:gray" Typo="Typo.subtitle2">Application Date: @application.ApplicationDate</MudText> *@
-                                </MudListItem>
+                                        <MudText Typo="Typo.h6">@pet.Description</MudText>
+                                        <MudText> Gender: @pet.Sex </MudText>
+                                        <MudText> Age: @pet.Age </MudText>
+                                    </MudListItem>
                             }
                         </MudList>
                     }
                 </MudPaper>
             </MudItem>
         }
-        else
-        {
-            <!-- Latest Ads -->
-            <MudItem xs="12" sm="12">
-                <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="90vh" MaxHeight="1000px">
-                    <MudText Typo="Typo.h5" Class="pa-4">My pets</MudText>
-                    @if (_loading)
-                    {
-                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
-                    }
-                    else
-                    {
-                        <MudList Clickable="true">
-                            @* @foreach (var ad in LatestAds)
-                    {
-                    <MudDivider />
-                    <MudListItem @onclick="(e) => OpenAdDialog(ad)">
-                    <MudText Typo="Typo.h6">@ad.Title</MudText>
-                    <MudText>@ad.Company.CompanyName | @ad.Location</MudText>
-                    <MudSpacer />
-                    <MudText Typo="Typo.subtitle2" Style="@($"color:{Colors.Green.Darken4};")">€@ad.SalaryFrom - €@ad.SalaryTo</MudText>
-                    <MudText Style="color:gray" Typo="Typo.body2">Posted: @ad.PostedDate</MudText>
-                    </MudListItem>
-                    } *@
-                        </MudList>
-                    }
-                </MudPaper>
-            </MudItem>
-        }
+
+        <!-- All pets -->
+        <MudItem xs="12" sm="12">
+            <MudPaper Elevation="2" Class="pa-4; overflow-auto" MaxHeight="1000px">
+                <MudText Typo="Typo.h5" Class="pa-4">Pets of other owners</MudText>
+                @if (AllPets == null)
+                {
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
+                }
+                else if (AllPets.Count == 0)
+                {
+                    <MudText Typo="Typo.subtitle1" Class="px-4 pb-3">There are no other pets currently</MudText>
+                }
+                else
+                {
+                    <MudList Clickable="true">
+                        @foreach (var pet in AllPets)
+                        {
+                            <MudDivider />
+                            <MudListItem @onclick="(e) => OpenPetDialog(pet.Id, pet.Name) ">
+                                <MudText Typo="Typo.h5">@pet.Name</MudText>
+                                    <MudText Typo="Typo.h6">@pet.Description</MudText>
+                                    <MudText> Gender: @pet.Sex </MudText>
+                                    <MudText> Age: @pet.Age </MudText>
+                                </MudListItem>
+                        }
+                    </MudList>
+                }
+            </MudPaper>
+        </MudItem>
     </MudGrid>
 </MudContainer>
 
@@ -157,12 +147,12 @@
     bool _isApplicant = false;
     bool _isAdmin = false;
 
-    // List<Ad> LatestAds = new List<Ad>();
+    List<PetDto>? AllPets;
     List<Owner> AllOwners = new List<Owner>();
     // List<Ad> AllAds = new List<Ad>();
-    List<PetDto> OwnerPets = new List<PetDto>();
+    List<PetDto>? OwnerPets;
+    List<AdDto>? OwnerAds;
     // List<ApplicationResponseVM> AllApplications = new List<ApplicationResponseVM>();
-    bool _loading = true;
 
     HttpClient client;
 
@@ -194,12 +184,16 @@
         }
         _loggingIn = false;
 
+        AllPets = await httpClient.GetFromJsonAsync<List<PetDto>>("api/pets");
+
         if (_isOwner)
         {
             var pets = await httpClient.GetFromJsonAsync<List<PetDto>>("api/pets");
             OwnerPets = pets.Where(p => p.OwnerId == _userId).ToList();
-            _loading = false;
+            AllPets = AllPets.Where(pet => !OwnerPets.Any(ownerPet => ownerPet.Id == pet.Id)).ToList();
         }
+        
+        StateHasChanged();
     }
 
     // protected override async Task OnAfterRenderAsync(bool firstRender)

@@ -54,7 +54,8 @@
                         <MudTextField T="decimal?"
                                       Variant="Variant.Outlined"
                                       Validation="@(new Func<decimal, IEnumerable<string>>(ValidatePay))"
-                                      Placeholder="Pay"
+                                      Label="Pay"
+                                      Placeholder="0.00"
                                       @bind-Value="@ad.Pay"
                                       Adornment="Adornment.Start"
                                       AdornmentIcon="@Icons.Material.Filled.Euro"
@@ -178,12 +179,6 @@
     {
         if (pay < 0)
             yield return "Pay cannot be less than 0!";
-    }
-
-    private IEnumerable<string> ValidateAge(int age)
-    {
-        if (age > 25)
-            yield return "Is the pet really so old?";
     }
 }
 
