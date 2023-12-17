@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PetHelp", "PetHelp\PetHelp.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PetHelp.FrontendWasm", "PetHelp.FrontendWasm\PetHelp.FrontendWasm.csproj", "{14C1425A-000F-4992-9C50-C14D1D4B68FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PetHelp.Domain", "PetHelp.Domain\PetHelp.Domain.csproj", "{741D1EE8-DF3C-4B07-9994-29D06F729AF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PetHelp.Domain", "PetHelp.Domain\PetHelp.Domain.csproj", "{741D1EE8-DF3C-4B07-9994-29D06F729AF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

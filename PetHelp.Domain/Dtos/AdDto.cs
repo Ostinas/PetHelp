@@ -13,5 +13,9 @@
         public string OwnerName { get; set; }
 
         public string PetName { get; set; }
+
+        public int PetId { get; set; }
+
+        public int Id { get; set; }
     }
 }

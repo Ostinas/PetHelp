@@ -1,0 +1,74 @@
+﻿@inject NavigationManager Navigate
+@inject HttpClient httpClient
+@inject IDialogService DialogService
+@inject TokenAuthStateProvider TokenAuthStateProvider
+
+@if (pets == null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" Class="ma-4" />
+}
+else
+{
+    <MudDialog ContentStyle="width: 450px">
+        <DialogContent>
+                <MudSelect Variant="Variant.Outlined"
+                           T="string"
+                           Class="mt-4"
+                           @bind-SelectedValues="selectedPetName">
+                    @foreach (var pet in pets)
+                    {
+                        <MudSelectItem Value="pet.Name" />
+                    }
+            </MudSelect>
+            <br />
+            @if (_error)
+            {
+                <MudAlert Severity="Severity.Error" IsOpen="true" Class="pt-4 pb-4">@_errorText</MudAlert>
+            }
+        </DialogContent>
+        <DialogActions>
+            @if (IsOwner)
+            {
+                <MudButton Color="Color.Primary" OnClick="Create">Create ad</MudButton>
+            }
+            <MudButton OnClick="Close">Close</MudButton>
+        </DialogActions>
+    </MudDialog>
+}
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public bool LoggedIn { get; set; }
+    [Parameter] public int UserId { get; set; }
+    [Parameter] public bool IsOwner { get; set; }
+    public List<PetDto>? pets;
+    public IEnumerable<string> selectedPetName;
+
+    bool _error = false;
+    string _errorText = "You must be logged in as an owner to create an ad.";
+
+    bool _settingToken = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allPets = await httpClient.GetFromJsonAsync<List<PetDto>>($"api/pets");
+        pets = allPets.Where(p => p.OwnerId == UserId).ToList();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && httpClient.DefaultRequestHeaders.Authorization == null)
+        {
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            _settingToken = false;
+        }
+    }
+
+    void Create()
+    {
+        var selectedPetId = pets.Where(pet => pet.Name == selectedPetName.First()).Select(pet => pet.Id).First();
+        Navigate.NavigateTo($"/pets/{selectedPetId}/ads/new");
+    }
+
+    void Close() => MudDialog.Cancel();
+}

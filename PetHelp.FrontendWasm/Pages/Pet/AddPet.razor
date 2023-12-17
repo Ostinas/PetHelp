@@ -1,0 +1,153 @@
+﻿@page "/pets/"
+
+@inject NavigationManager Navigate
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject HttpClient httpClient
+@inject IDialogService DialogService
+
+<PageTitle>Add a new pet</PageTitle>
+
+<MudContainer Class="mt-16 px-8">
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="10" xl="8" Class="mx-auto">
+            <MudPaper Elevation="2" Class="pa-4 my-2">
+                @if (pet == null)
+                {
+                    <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto" />
+                    </MudContainer>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h5" Class="pa-4">Add a new pet</MudText>
+                    <EditForm Model="pet" OnValidSubmit="@CreatePet" OnInvalidSubmit="@InvalidSubmit">
+                        <DataAnnotationsValidator />
+                        <MudTextField T="string"
+                                      Label="Name"
+                                      Variant="Variant.Outlined"
+                                      Counter="25"
+                                      MaxLength="25"
+                                      Immediate="true"
+                                      Validation="@(new Func<string, IEnumerable<string>>(ValidateName))"
+                                      @bind-Value="@pet.Name"
+                                      Required="true"
+                                      FullWidth="true" />
+                        <MudTextField T="string"
+                                      Counter="2000"
+                                      MaxLength="2000"
+                                      Variant="Variant.Outlined"
+                                      Validation="@(new Func<string, IEnumerable<string>>(ValidateDescription))" Immediate="true"
+                                      Placeholder="Description (required)"
+                                      @bind-Value="@pet.Description"
+                                      FullWidth="true"
+                                      Lines="10"
+                                      Required="true"
+                                      Class="mt-6" />
+                        <MudTextField T="int"
+                                      Label="Age of the pet in years"
+                                      Class="mt-4"
+                                      Variant="Variant.Outlined"
+                                      Immediate="true"
+                                      Validation="@(new Func<int, IEnumerable<string>>(ValidateAge))"
+                                      @bind-Value="@pet.Age"
+                                      Required="true"
+                                      InputType="InputType.Number" />
+                        <MudSelect Variant="Variant.Outlined"
+                                   T="string"
+                                   Class="mt-4"
+                                   @bind-Value="selectedGender">
+                            @foreach (var gender in Genders)
+                            {
+                                <MudSelectItem Value="gender" />
+                            }
+                        </MudSelect>
+                        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-6" FullWidth="true">Add new pet</MudButton>
+                    </EditForm>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    int _userId;
+    string _userRole;
+
+    List<string> Genders = new List<string> { "Male", "Female" };
+    string selectedGender;
+
+    bool _isOwner = false;
+    bool _isApplicant = false;
+    bool _isAdmin = false;
+
+    Pet pet;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (_loggedIn)
+        {
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
+            _userRole = user.FindFirst("role")?.Value ?? "candidate";
+
+            if (_userRole == "owner")
+            {
+                _isOwner = true;
+            }
+            else if (_userRole == "candidate")
+            {
+                _isApplicant = true;
+            }
+            else if (_userRole == "admin")
+            {
+                _isOwner = true;
+                _isApplicant = true;
+                _isAdmin = true;
+            }
+        }
+        else
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged in and be an owner to add a pet.");
+            Navigate.NavigateTo("/");
+            return;
+        }
+
+        if (_isOwner || _isAdmin)
+        {
+            pet = new();
+            StateHasChanged();
+        }
+    }
+
+    private async Task CreatePet()
+    {
+        
+    }
+
+    private async Task InvalidSubmit()
+    {
+        await DialogService.ShowMessageBox("Error", "Please correct any missing fields before saving.");
+    }
+
+    private IEnumerable<string> ValidateName(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 75 < ch?.Length)
+            yield return "The name of the pet cannot be longer than 25 characters!";
+    }
+
+    private IEnumerable<string> ValidateDescription(string description)
+    {
+        if (!string.IsNullOrEmpty(description) && 3000 < description?.Length)
+            yield return "The description cannot exceed 2000 characters!";
+    }
+
+    private IEnumerable<string> ValidateAge(int age)
+    {
+        if (age > 25)
+            yield return "Is the pet really so old?";
+    }
+}

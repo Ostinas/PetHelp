@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PetHelp.Data;
+using PetHelp.API.Data;
 using PetHelp.Dtos;
 using PetHelp.Models;
 
-namespace PetHelp.Repositories
+namespace PetHelp.API.Repositories
 {
     public class AdRepository
     {
@@ -22,8 +22,6 @@ namespace PetHelp.Repositories
                 .Include(a => a.Owner)
                 .Select(a => new AdDto
                 {
-                    Id = (int)a.Id,
-                    PetId = a.PetId,
                     MeetingAddress = a.MeetingAddress,
                     CareStart = a.CareStart,
                     CareEnd = a.CareEnd,

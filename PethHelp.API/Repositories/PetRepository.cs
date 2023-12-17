@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PetHelp.Data;
+using PetHelp.API.Data;
 using PetHelp.Dtos;
 using PetHelp.Models;
 
-namespace PetHelp.Repositories
+namespace PetHelp.API.Repositories
 {
     public class PetRepository(PetHelpContext context)
     {
@@ -16,13 +16,11 @@ namespace PetHelp.Repositories
                 .Include(u => u.Ad)
                 .Select(pet => new PetDto
                 {
-                    Id = (int)pet.Id,
                     Name = pet.Name,
                     Description = pet.Description,
-                    Sex = pet.Sex.ToString(),
+                    Sex = pet.Sex,
                     Age = pet.Age,
                     OwnerName = pet.Owner.Name,
-                    OwnerId = pet.OwnerId,
                     CareStart = pet.Ad.CareStart,
                     CareEnd = pet.Ad.CareEnd
                 }).ToListAsync();
@@ -38,7 +36,7 @@ namespace PetHelp.Repositories
                 {
                     Name = pet.Name,
                     Description = pet.Description,
-                    Sex = pet.Sex.ToString(),
+                    Sex = pet.Sex,
                     Age = pet.Age,
                     OwnerName = pet.Owner.Name,
                     CareStart = pet.Ad.CareStart,

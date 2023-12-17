@@ -1,0 +1,21 @@
+﻿ @page "/login-callback"
+ @page "/logout"
+ @inject TokenAuthStateProvider TokenAuthStateProvider
+ @inject NavigationManager Navigation
+
+@code {
+    [Parameter] public string Token { get; set; } = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+            QueryHelpers.ParseQuery(uri.Query).TryGetValue("token", out var token);
+            string tokenString = token.ToString();
+            await TokenAuthStateProvider.SetTokenAsync(tokenString ?? string.Empty, !firstRender);
+
+            Navigation.NavigateTo("/");
+        }
+    }
+}

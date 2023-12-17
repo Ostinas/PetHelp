@@ -1,0 +1,184 @@
+﻿@page "/pets/{petId:int}"
+
+@inject NavigationManager Navigate
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject HttpClient httpClient
+@inject IDialogService DialogService
+
+<PageTitle>Edit pet information</PageTitle>
+
+<MudContainer Class="mt-16 px-8">
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="10" xl="8" Class="mx-auto">
+            <MudPaper Elevation="2" Class="pa-4 my-2">
+                @if (editedPet == null)
+                {
+                    <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto" />
+                    </MudContainer>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h5" Class="pa-4">Edit pet information</MudText>
+                    <EditForm Model="editedPet" OnValidSubmit="@UpdatePet" OnInvalidSubmit="@InvalidSubmit">
+                        <DataAnnotationsValidator />
+                        <MudTextField T="string"
+                                      Label="Name"
+                                      Variant="Variant.Outlined"
+                                      Counter="25"
+                                      MaxLength="25"
+                                      Immediate="true"
+                                      Validation="@(new Func<string, IEnumerable<string>>(ValidateName))"
+                                      @bind-Value="@editedPet.Name"
+                                      Required="true"
+                                      FullWidth="true" />
+                        <MudTextField T="string"
+                                      Counter="2000"
+                                      MaxLength="2000"
+                                      Variant="Variant.Outlined"
+                                      Validation="@(new Func<string, IEnumerable<string>>(ValidateDescription))" Immediate="true"
+                                      Placeholder="Description (required)"
+                                      @bind-Value="@editedPet.Description"
+                                      FullWidth="true"
+                                      Lines="10"
+                                      Required="true"
+                                      Class="mt-6" />
+                        <MudTextField T="int"
+                                      Label="Age of the pet in years"
+                                      Class="mt-4"
+                                      Variant="Variant.Outlined"
+                                      Immediate="true"
+                                      Validation="@(new Func<int, IEnumerable<string>>(ValidateAge))"
+                                      @bind-Value="@editedPet.Age"
+                                      Required="true"
+                                      InputType="InputType.Number" />
+                        <MudSelect 
+                            Variant="Variant.Outlined" 
+                            T="string"
+                            Class="mt-4"
+                            @bind-Value="selectedGender">
+                            @foreach (var gender in Genders)
+                            {
+                                <MudSelectItem Value="gender"/>
+                            }
+                        </MudSelect>
+                        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-6" FullWidth="true">Save</MudButton>
+                    </EditForm>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    int _userId;
+    string _userRole;
+    [Parameter] public int petId { get; set; }
+
+    List<string> Genders = new List<string> { "Male", "Female" };
+    string selectedGender;
+
+    bool _isOwner = false;
+    bool _isApplicant = false;
+    bool _isAdmin = false;
+
+    PetDto pet;
+    Pet editedPet;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (_loggedIn)
+        {
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
+            _userRole = user.FindFirst("role")?.Value ?? "candidate";
+
+            if (_userRole == "owner")
+            {
+                _isOwner = true;
+            }
+            else if (_userRole == "candidate")
+            {
+                _isApplicant = true;
+            }
+            else if (_userRole == "admin")
+            {
+                _isOwner = true;
+                _isApplicant = true;
+                _isAdmin = true;
+            }
+        }
+        else
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged and own this pet to edit its information.");
+            Navigate.NavigateTo("/");
+            return;
+        }
+
+        if (_isOwner || _isAdmin)
+        {
+            // Retrieve pet
+            var pet = await httpClient.GetFromJsonAsync<PetDto>($"api/pets/{petId}");
+
+            editedPet = new Pet();
+            editedPet.Name = pet.Name;
+            editedPet.Description = pet.Description;
+            editedPet.Age = pet.Age;
+
+            editedPet.Sex = pet.Sex == "Male" ? Gender.Male : Gender.Female;
+            selectedGender = pet.Sex == "Male" ? "Male" : "Female";
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task UpdatePet()
+    {
+        try
+        {
+            editedPet.Sex = selectedGender == "Male" ? Gender.Male : Gender.Female; ;
+            var response = await httpClient.PutAsJsonAsync($"api/pets/{petId}", editedPet);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                await DialogService.ShowMessageBox("Error", "An error occurred while updating pet information.");
+            }
+            else
+            {
+                await DialogService.ShowMessageBox("Success", "You have successfully updated the pet information.");
+                Navigate.NavigateTo("/");
+            }
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowMessageBox("Error", $"An error occurred: {ex.Message}");
+        }
+    }
+
+    private async Task InvalidSubmit()
+    {
+        await DialogService.ShowMessageBox("Error", "Please correct any missing fields before saving.");
+    }
+
+    private IEnumerable<string> ValidateName(string ch)
+    {
+        if (!string.IsNullOrEmpty(ch) && 75 < ch?.Length)
+            yield return "The name of the pet cannot be longer than 25 characters!";
+    }
+
+    private IEnumerable<string> ValidateDescription(string description)
+    {
+        if (!string.IsNullOrEmpty(description) && 3000 < description?.Length)
+            yield return "The description cannot exceed 2000 characters!";
+    }
+
+    private IEnumerable<string> ValidateAge(int age)
+    {
+        if (age > 25)
+            yield return "Is the pet really so old?";
+    }
+}

@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PetHelp.Data;
-using PetHelp.Repositories;
+using PetHelp.API.Data;
+using PetHelp.API.Repositories;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
 var config = builder.Configuration;
 var connectionString = builder.Configuration.GetConnectionString("PetHelpContext");
 var MyCorsPolicy = "AnyToAny";
@@ -43,49 +46,24 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(name: MyCorsPolicy,
-        policy =>
-        {
-            policy.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
-        });
-});
-
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
-//app.UseStaticFiles();
-//app.UseRouting();
 
 app.UseCors(MyCorsPolicy);
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseSwagger();
-app.UseSwaggerUI(options =>
-{
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "PetHelpAPI");
-    options.RoutePrefix = "";
-});
-
 app.MapControllers();
-//app.MapControllerRoute(
-//    name: "default",
-//    pattern: "{controller}/{action=Index}/{id?}");
-
-//app.MapFallbackToFile("index.html");
 
 app.Run();

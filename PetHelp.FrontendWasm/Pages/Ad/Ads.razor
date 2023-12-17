@@ -1,15 +1,16 @@
-﻿@page "/"
+﻿@page "/ads"
 
 @inject TokenAuthStateProvider TokenAuthStateProvider
 @inject HttpClient httpClient
 @inject IDialogService DialogService
+@inject NavigationManager Navigate
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Ads</PageTitle>
 
 <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
     <MudGrid>
         <!-- Actions -->
-        <MudItem lg="6" md="6" sm="12" xs="12">
+        <MudItem lg="8" md="8" sm="12" xs="12">
             <MudPaper Elevation="2" Class="pa-4 overflow-auto" Height="17vh">
                 @if (_loggingIn)
                 {
@@ -35,62 +36,24 @@
                     if (_isOwner)
                     {
                         <MudListItem>
-                            <MudButton Href="/pets" FullWidth="true" Variant="Variant.Outlined">
+                            <MudButton OnClick="OpenCreateAdForPetDialog" FullWidth="true" Variant="Variant.Outlined">
                                 <ChildContent>
                                     <MudIcon Icon="@Icons.Material.Outlined.Pets" Class="mr-1" />
-                                    <MudText Typo="Typo.button" Color="Color.Inherit">Add a new pet</MudText>
+                                    <MudText Typo="Typo.button" Color="Color.Inherit">Create a new ad</MudText>
                                 </ChildContent>
                             </MudButton>
                         </MudListItem>
                     }
-
-                    @* <MudListItem>
-                <MudButton Href="/logout" FullWidth="true" Variant="Variant.Outlined">
-                <ChildContent>
-                <MudIcon Icon="@Icons.Material.Outlined.ExitToApp" Class="mr-1" />
-                <MudText Typo="Typo.button" Color="Color.Inherit">Logout</MudText>
-                </ChildContent>
-                </MudButton>
-                </MudListItem> *@
                 }
-                else if (!_loggingIn)
-                {
-                    <!-- Not authenticated -->
-                    <MudListItem>
-                        <MudButton Href="/login" FullWidth="true" Variant="Variant.Outlined">
-                            <ChildContent>
-                                <MudIcon Icon="@Icons.Material.Outlined.ExitToApp" Class="mr-1" />
-                                <MudText Typo="Typo.button" Color="Color.Inherit">Login</MudText>
-                            </ChildContent>
-                        </MudButton>
-                    </MudListItem>
-                }
-
-            </MudPaper>
-        </MudItem>
-
-        <MudItem lg="6" md="6" sm="12" xs="12">
-            <MudPaper Elevation="2" Class="pa-4" Height="17vh">
-                <MudCarousel Class="mud-width-full" style="height:100%" ShowArrows="false" ShowBullets="false" EnableSwipeGesture="false" AutoCycle="true" TData="object">
-                    <MudCarouselItem Transition="Transition.Slide" Color="@Color.Primary">
-                        <MudImage Src="images/1.png" Fluid="true" ObjectFit="ObjectFit.Cover"></MudImage>
-                    </MudCarouselItem>
-                    <MudCarouselItem Transition="Transition.Slide" Color="@Color.Secondary">
-                        <MudImage Src="images/2.jpg" Fluid="true" ObjectFit="ObjectFit.Cover"></MudImage>
-                    </MudCarouselItem>
-                    <MudCarouselItem Transition="Transition.Slide">
-                        <MudImage Src="images/3.jpg" Fluid="true" ObjectFit="ObjectFit.Cover"></MudImage>
-                    </MudCarouselItem>
-                </MudCarousel>
             </MudPaper>
         </MudItem>
 
         @if (_isOwner)
         {
-            <!-- Owner pets -->
+            <!-- Owner ads -->
             <MudItem xs="12" sm="12">
                 <MudPaper Elevation="2" Class="pa-4 overflow-auto" MaxHeight="1000px">
-                    <MudText Typo="Typo.h5" Class="pa-3">My pets</MudText>
+                    <MudText Typo="Typo.h5" Class="pa-3">My ads</MudText>
                     @if (_loading)
                     {
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
@@ -98,15 +61,17 @@
                     else
                     {
                         <MudList Clickable="true">
-                            @foreach (var pet in OwnerPets)
+                            @foreach (var ad in OwnerAds)
                             {
                                 <MudDivider />
-                                <MudListItem @onclick="(e) => OpenPetDialog(pet.Id, pet.Name) ">
-                                    <MudText Typo="Typo.h5">@pet.Name</MudText>
-                                    <MudText Typo="Typo.h6">@pet.Description</MudText>
-                                    <MudText> Gender: @pet.Sex </MudText>
-                                    <MudText> Age: @pet.Age </MudText>
-                                        @*<MudText Style="color:gray" Typo="Typo.subtitle2">Application Date: @application.ApplicationDate</MudText> *@
+                                <MudListItem @onclick="(e) => OpenAd(ad.Id, ad.PetId) ">
+                                    <MudText Typo="Typo.h5">@ad.PetName</MudText>
+                                    @if (ad.Pay > 0)
+                                    {
+                                        <MudText Typo="Typo.h5">@ad.Pay</MudText>
+                                    }
+                                    <MudText><b>Care start date:</b> @ad.CareStart</MudText>
+                                    <MudText><b>Care end date:</b> @ad.CareEnd</MudText>
                                 </MudListItem>
                             }
                         </MudList>
@@ -119,7 +84,7 @@
             <!-- Latest Ads -->
             <MudItem xs="12" sm="12">
                 <MudPaper Elevation="2" Class="pa-4; overflow-auto" Height="90vh" MaxHeight="1000px">
-                    <MudText Typo="Typo.h5" Class="pa-4">My pets</MudText>
+                    <MudText Typo="Typo.h5" Class="pa-4">All ads</MudText>
                     @if (_loading)
                     {
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
@@ -157,9 +122,9 @@
     bool _isApplicant = false;
     bool _isAdmin = false;
 
-    // List<Ad> LatestAds = new List<Ad>();
+    List<Ad> LatestAds = new List<Ad>();
     List<Owner> AllOwners = new List<Owner>();
-    // List<Ad> AllAds = new List<Ad>();
+    List<AdDto>? OwnerAds;
     List<PetDto> OwnerPets = new List<PetDto>();
     // List<ApplicationResponseVM> AllApplications = new List<ApplicationResponseVM>();
     bool _loading = true;
@@ -198,6 +163,14 @@
         {
             var pets = await httpClient.GetFromJsonAsync<List<PetDto>>("api/pets");
             OwnerPets = pets.Where(p => p.OwnerId == _userId).ToList();
+
+            var adTasks = pets.Select(pet => httpClient.GetFromJsonAsync<List<AdDto>>($"api/pets/{pet.Id}/ads")).ToList();
+            var ads = await Task.WhenAll(adTasks);
+            OwnerAds = new();
+            foreach (var adList in ads)
+            {
+                OwnerAds.AddRange(adList);
+            }
             _loading = false;
         }
     }
@@ -244,14 +217,18 @@
     //     DialogService.Show<HomeAdDialog>(selectedAd.Pet.Name, parameters, options);
     // }
 
-    private void OpenPetDialog(int petId, string petName)
+    private void OpenAd(int adId, int petId)
     {
-        var parameters = new DialogParameters<PetViewDialog>();
-        parameters.Add("PetId", petId);
+        Navigate.NavigateTo($"/pets/{petId}/ads/{adId}");
+    }
+
+    private void OpenCreateAdForPetDialog()
+    {
+        var parameters = new DialogParameters<CreateAdForPetDialog>();
         parameters.Add("LoggedIn", _loggedIn);
         parameters.Add("UserId", _userId);
         parameters.Add("IsOwner", _isOwner);
         var options = new DialogOptions { CloseOnEscapeKey = true };
-        DialogService.Show<PetViewDialog>(petName, parameters, options);
+        DialogService.Show<CreateAdForPetDialog>("Choose your pet", parameters, options);
     }
 }

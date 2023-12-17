@@ -1,0 +1,111 @@
+﻿@page "/profile"
+
+@inject NavigationManager Navigate
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject HttpClient httpClient
+@inject IDialogService DialogService
+
+<PageTitle>My profile</PageTitle>
+
+<MudContainer Class="mt-16 px-8">
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="10" xl="8" Class="mx-auto">
+            <MudPaper Elevation="2" Class="pa-4 my-2">
+                @if (owner != null)
+                {
+                    <MudText Typo="Typo.h5" Class="my-2">My profile information</MudText>
+                    <MudDivider Class="mb-2" />
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.h6">Name</MudText>
+                        <MudText Class="mb-2" Typo="Typo.subtitle1">@owner.Name</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.h6">Email</MudText>
+                        <MudText Class="mb-2" Typo="Typo.subtitle1">@owner.Email</MudText>
+                    </MudItem>
+                    <MudText Typo="Typo.h6">City</MudText>
+                    <MudText Class="mb-2" Typo="Typo.subtitle1">@owner.City</MudText>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.h6">Address</MudText>
+                        <MudText Class="mb-2" Typo="Typo.subtitle1">@owner.Address</MudText>
+                    </MudItem>
+                    <MudText Typo="Typo.h6">Current password</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="9">
+                            <MudText Typo="Typo.subtitle1">@owner.Password</MudText>
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudButton Color="Color.Info" OnClick="EditOwner">Edit information</MudButton>
+                        </MudItem>
+                    </MudGrid>
+                }
+                else if (applicant != null)
+                {
+                    <MudText Typo="Typo.h5" Class="pa-4">Edit pet information</MudText>
+
+                }
+                else
+                {
+                    <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto" />
+                    </MudContainer>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    int _userId;
+    string _userRole;
+
+    bool _isOwner = false;
+    OwnerDto? owner;
+    bool _isApplicant = false;
+    ApplicantDto? applicant;
+    bool _isAdmin = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (_loggedIn)
+        {
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
+            _userRole = user.FindFirst("role")?.Value ?? "candidate";
+
+            if (_userRole == "owner")
+            {
+                _isOwner = true;
+                owner = await httpClient.GetFromJsonAsync<OwnerDto>($"api/owners/{_userId}");
+                StateHasChanged();
+            }
+            else if (_userRole == "candidate")
+            {
+                _isApplicant = true;
+                applicant = await httpClient.GetFromJsonAsync<ApplicantDto>($"api/applicants/{_userId}");
+                StateHasChanged();
+            }
+            else if (_userRole == "admin")
+            {
+                _isOwner = true;
+                _isApplicant = true;
+                _isAdmin = true;
+            }
+        }
+        else
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged in to see your profile.");
+            Navigate.NavigateTo("/");
+            return;
+        }
+    }
+
+    void EditOwner()
+    {
+        Navigate.NavigateTo($"/owners/{_userId}");
+    }
+}

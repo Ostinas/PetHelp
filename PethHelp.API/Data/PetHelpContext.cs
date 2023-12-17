@@ -2,7 +2,7 @@
 using PetHelp.Domain.DomainModels;
 using PetHelp.Models;
 
-namespace PetHelp.Data
+namespace PetHelp.API.Data
 {
     public class PetHelpContext(DbContextOptions<PetHelpContext> options) : DbContext(options)
     {

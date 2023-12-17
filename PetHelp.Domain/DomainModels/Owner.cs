@@ -17,6 +17,7 @@
         public string City { get; set; }
 
         public List<Ad>? Ads { get; set; }
+
         public List<Pet>? Pets { get; set; }
     }
 }

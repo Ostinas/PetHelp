@@ -6,9 +6,9 @@
 
         public string MeetingAddress { get; set; }
 
-        public DateTime CareStart { get; set; }
+        public DateTime CareStart { get; set; } = DateTime.Today;
 
-        public DateTime CareEnd { get; set; }
+        public DateTime CareEnd { get; set; } = DateTime.Today.AddDays(1);
 
         public DateTime AdStart { get; set; } = DateTime.Now;
 

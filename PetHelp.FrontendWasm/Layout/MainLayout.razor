@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
+@inject TokenAuthStateProvider TokenAuthStateProvider
 @inject NavigationManager Navigate
 
 <MudThemeProvider />
@@ -15,7 +16,7 @@
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
             <div style="display: flex; flex-direction: row;">
                 <MudButton Href="/" Style="color:white">Home</MudButton>
-                @* <MudButton Href="/jobs" Style="color:white">Browse Jobs</MudButton> *@
+                <MudButton Href="/ads" Style="color:white">Browse ads</MudButton>
                 @* <MudButton Href="/companies" Style="color:white">Browse Companies</MudButton> *@
                 @* <MudButton Href="/applications" Style="color:white">Applications</MudButton> *@
             </div>
@@ -27,6 +28,14 @@
                     <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Size="Size.Large" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
                         @if (_loggedIn)
                         {
+                            <MudMenuItem>
+                                <MudButton OnClick="Profile" Href="/profile">
+                                    <ChildContent>
+                                        <MudIcon Icon="@Icons.Material.Filled.ManageAccounts" Class="mr-1" />
+                                        <MudText Typo="Typo.button" Color="Color.Inherit">Profile</MudText>
+                                    </ChildContent>
+                                </MudButton>
+                            </MudMenuItem>
                             <MudMenuItem>
                                 <MudButton OnClick="Logout" Href="/logout">
                                     <ChildContent>
@@ -72,16 +81,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
-        // var user = authState.User;
-        // _loggedIn = authState.User.Identity.IsAuthenticated;
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
-        // var user = authState.User;
-        // _loggedIn = authState.User.Identity.IsAuthenticated;
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
     }
 
     void DrawerToggle()
@@ -97,5 +106,10 @@
     void Logout()
     {
         Navigate.NavigateTo("/logout");
+    }
+
+    void Profile()
+    {
+        Navigate.NavigateTo("/profile");
     }
 }

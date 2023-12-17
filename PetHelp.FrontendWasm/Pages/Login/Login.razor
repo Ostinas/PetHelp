@@ -1,7 +1,8 @@
 ﻿@page "/login"
-
+@inject HttpClient _httpClient
 
 @inject IDialogService DialogService
+@inject NavigationManager Navigation
 
 <PageTitle>Login</PageTitle>
 
@@ -28,6 +29,7 @@
 @code {
     LoginInfo loginInfo = new();
     bool isProcessing = false;
+    bool loginError;
 
     private async Task SubmitLoginInfo()
     {
@@ -37,24 +39,21 @@
             return;
         }
         isProcessing = true;
-        // if (loginInfo.Password.Contains("admin"))
-        //     loginInfo.Role = "admin";
 
         var serializedModel = JsonSerializer.Serialize(loginInfo);
-        // var client = ClientFactory.CreateClient("httpClient");
-        // var authenticationResult = await client.PostAsync("api/Auth/login", new StringContent(serializedModel, Encoding.UTF8, "application/json"));
-        // _loginError = authenticationResult.StatusCode != System.Net.HttpStatusCode.Created;
+        var authenticationResult = await _httpClient.PostAsJsonAsync("api/Auth/login", loginInfo);
+        loginError = authenticationResult.StatusCode != HttpStatusCode.Created;
 
-        // if (!_loginError)
-        // {
-        //     string token = await authenticationResult.Content.ReadAsStringAsync();
-        //     string tokenParam = $"token={Uri.EscapeDataString(token)}";
-        //     Navigation.NavigateTo($"/login-callback?{tokenParam}");
-        // }
-        // else
-        // {
-        //     _processing = false;
-        //     await DialogService.ShowMessageBox("Error", "Invalid email or password.");
-        // }
+        if (!loginError)
+        {
+            string token = await authenticationResult.Content.ReadAsStringAsync();
+            string tokenParam = $"token={Uri.EscapeDataString(token)}";
+            Navigation.NavigateTo($"/login-callback?{tokenParam}");
+        }
+        else
+        {
+            isProcessing = false;
+            await DialogService.ShowMessageBox("Error", "Invalid email or password.");
+        }
     }
 }
