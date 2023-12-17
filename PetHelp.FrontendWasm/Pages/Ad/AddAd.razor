@@ -142,6 +142,9 @@
     {
         try
         {
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
             newAd.CareStart = (DateTime)careStart;
             newAd.CareEnd = (DateTime)careEnd;
             newAd.OwnerId = _userId;
@@ -154,8 +157,9 @@
             }
             else
             {
+                var newAd = await response.Content.ReadFromJsonAsync<Ad>();
                 await DialogService.ShowMessageBox("Success", $"You have successfully created a new ad for {pet.Name}.");
-                Navigate.NavigateTo("/ads/{adId}");
+                Navigate.NavigateTo($"pets/{petId}/ads/{newAd.Id}");
             }
         }
         catch (Exception ex)

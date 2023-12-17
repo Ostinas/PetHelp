@@ -102,7 +102,7 @@ namespace PetHelp.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         [Authorize(Roles = "owner,admin")]
-        public async Task<ActionResult<Ad>> PostAd(Ad ad, int petId)
+        public async Task<ActionResult<Ad>> PostAd([FromBody] Ad ad, int petId)
         {
             var pet = await _petRepository.GetPet(petId);
 
@@ -111,14 +111,21 @@ namespace PetHelp.Controllers
                 NotFound("Pet not found");
             }
 
-            ad = await _adRepository.PostAd(ad, petId);
+            try
+            {
+                ad = await _adRepository.PostAd(ad, petId);
+            }
+            catch(Exception ex)
+            {
+                var check = ex;
+            }
 
             if (ad == null)
             {
                 return BadRequest();
             }
 
-            return CreatedAtAction("GetAd", new { id = ad.Id }, ad);
+            return CreatedAtAction("GetAd", new { id = ad.Id, petId }, ad);
         }
 
         // DELETE: api/pets/{petId}/Ads/5
@@ -144,7 +151,7 @@ namespace PetHelp.Controllers
             {
                 await _adRepository.DeleteAd(id);
             }
-            catch
+            catch (Exception ex)
             {
                 return StatusCode(500);
             }

@@ -105,6 +105,14 @@ namespace PetHelp.Repositories
                 return -1;
             }
 
+            // Remove references in Pets
+            var petsWithReference = _context.Pets.Where(p => p.AdId == id);
+            foreach (var pet in petsWithReference)
+            {
+                pet.AdId = null;
+            }
+
+            // Delete the Ad
             _context.Ads.Remove(ad);
             await _context.SaveChangesAsync();
             return 1;

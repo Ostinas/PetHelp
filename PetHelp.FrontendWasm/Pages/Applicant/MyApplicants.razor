@@ -1,4 +1,5 @@
 ﻿@page "/applicants"
+@page "/pets/{PetId:int}/ads/{AdId:int}/applicants"
 
 @inject TokenAuthStateProvider TokenAuthStateProvider
 @inject HttpClient httpClient
@@ -46,6 +47,9 @@
     bool _isApplicant = false;
     bool _isAdmin = false;
 
+    [Parameter] public int PetId { get; set; }
+    [Parameter] public int AdId { get; set; }
+
     List<AdDto>? LatestAds;
     List<Owner> AllOwners = new List<Owner>();
     List<AdDto>? OwnerAds;
@@ -85,7 +89,7 @@
             var pets = await httpClient.GetFromJsonAsync<List<PetDto>>("api/pets");
             OwnerPets = pets.Where(p => p.OwnerId == _userId && p.CareStart != null).ToList();
 
-            var adTasks = pets.Select(pet => httpClient.GetFromJsonAsync<List<AdDto>>($"api/pets/{pet.Id}/ads")).ToList();
+            var adTasks = OwnerPets.Select(pet => httpClient.GetFromJsonAsync<List<AdDto>>($"api/pets/{pet.Id}/ads")).ToList();
             var ads = await Task.WhenAll(adTasks);
             OwnerAds = new();
             foreach (var adList in ads)

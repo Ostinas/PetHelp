@@ -33,8 +33,6 @@
 
   <ItemGroup>
     <None Include="Dialogs\ApplicationViewDialog.razor" />
-    <None Include="Dialogs\BrowseCompanyDialog.razor" />
-    <None Include="Dialogs\HomeAdDialog.razor" />
     <None Include="Pages\Ad\Ads.razor" />
   </ItemGroup>
 

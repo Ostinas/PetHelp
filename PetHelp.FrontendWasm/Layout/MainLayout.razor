@@ -3,7 +3,7 @@
 @inject TokenAuthStateProvider TokenAuthStateProvider
 @inject NavigationManager Navigate
 
-<MudThemeProvider />
+<MudThemeProvider Theme="Theme" />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
@@ -88,6 +88,26 @@
     bool IsOwner = false;
     string? userRole;
 
+    MudTheme Theme = new MudTheme()
+        {
+            Palette = new PaletteLight()
+            {
+                Primary = Colors.Green.Darken3,
+                Secondary = Colors.Green.Accent4,
+                Info = Colors.Cyan.Default,
+                Error = Colors.DeepOrange.Accent3,
+                AppbarBackground = Colors.Teal.Darken1,
+            },
+            Typography = new Typography()
+            {
+                
+                Default = new Default()
+                {
+                    FontFamily = new[] { "Verdana", "Helvetica", "Arial", "sans-serif" }
+                }
+            }
+        };
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
@@ -110,12 +130,6 @@
         var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         _loggedIn = authState.User.Identity.IsAuthenticated;
-
-        // if (_loggedIn)
-        // {
-        //     userRole = user.FindFirst("role")?.Value ?? "applicant";
-        //     StateHasChanged();
-        // }
     }
 
     void DrawerToggle()
