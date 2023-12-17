@@ -16,5 +16,11 @@
         public string Address { get; set; }
 
         public string City { get; set; }
+
+        public int PetId { get; set; }
+
+        public string PetName { get; set; }
+
+        public int AdId { get; set; }
     }
 }

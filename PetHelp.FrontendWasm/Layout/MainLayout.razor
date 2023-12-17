@@ -19,7 +19,7 @@
                 <MudButton Href="/ads" Style="color:white">Browse ads</MudButton>
                 @if (IsOwner)
                 {
-                    <MudButton Href="/pets" Style="color:white">My pets</MudButton>
+                    <MudButton Href="/applicants" Style="color:white">My applicants</MudButton>
                 }
                 @* <MudButton Href="/applications" Style="color:white">Applications</MudButton> *@
             </div>
@@ -31,14 +31,17 @@
                     <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Size="Size.Large" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
                         @if (_loggedIn)
                         {
-                            <MudMenuItem>
-                                <MudButton OnClick="Profile" Href="/profile">
+                            @if (IsOwner)
+                            {
+                                <MudMenuItem>
+                                    <MudButton OnClick="Profile" Href="/profile">
                                     <ChildContent>
                                         <MudIcon Icon="@Icons.Material.Filled.ManageAccounts" Class="mr-1" />
                                         <MudText Typo="Typo.button" Color="Color.Inherit">Profile</MudText>
                                     </ChildContent>
                                 </MudButton>
                             </MudMenuItem>
+                            }
                             <MudMenuItem>
                                 <MudButton OnClick="Logout" Href="/logout">
                                     <ChildContent>

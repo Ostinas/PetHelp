@@ -1,0 +1,174 @@
+﻿@page "/pets/{PetId:int}/ads/{AdId:int}/applicants/edit/{ApplicantId:int}"
+
+@inject NavigationManager Navigate
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject HttpClient httpClient
+@inject IDialogService DialogService
+
+<PageTitle>Edit your application</PageTitle>
+
+<MudContainer Class="mt-16 px-8">
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="10" xl="8" Class="mx-auto">
+            <MudPaper Elevation="2" Class="pa-4 my-2">
+                @if (applicant == null)
+                {
+                    <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto" />
+                    </MudContainer>
+                }
+                else
+                {
+                    <div style="display: flex; justify-content: center;">
+                        <MudText Typo="Typo.h4">Your application</MudText>
+                    </div>
+
+                    <EditForm Model="applicant" OnValidSubmit="@Apply" OnInvalidSubmit="@InvalidSubmit">
+                        <DataAnnotationsValidator />
+                        <MudTextField T="string"
+                                      Label="Your name"
+                                      Variant="Variant.Outlined"
+                                      Counter="20"
+                                      MaxLength="20"
+                                      Immediate="true"
+                                      Validation="@(new Func<string, IEnumerable<string>>(ValidateName))"
+                                      @bind-Value="@applicant.Name"
+                                      Required="true"
+                                      Class="mt-1" />
+                        <MudTextField T="string"
+                                      Label="Your email"
+                                      Variant="Variant.Outlined"
+                                      Counter="50"
+                                      MaxLength="50"
+                                      Immediate="true"
+                                      Validation="@(new Func<string, IEnumerable<string>>(ValidateEmail))"
+                                      @bind-Value="@applicant.Email"
+                                      Required="true"
+                                      Class="mt-1" />
+                        <MudTextField T="string"
+                                      Label="Description"
+                                      Variant="Variant.Outlined"
+                                      Lines="6"
+                                      Counter="400"
+                                      MaxLength="400"
+                                      Immediate="true"
+                                      Validation="@(new Func<string, IEnumerable<string>>(ValidateDescription))"
+                                      @bind-Value="@applicant.Description"
+                                      Required="true"
+                                      Class="mt-1" />
+                        <MudTextField T="string"
+                                      Label="Phone number"
+                                      Variant="Variant.Outlined"
+                                      Counter="12"
+                                      MaxLength="12"
+                                      Immediate="true"
+                                      @bind-Value="@applicant.PhoneNumber"
+                                      Required="true"
+                                      Class="mt-1" />
+                        <MudTextField T="string"
+                                      Label="City"
+                                      Variant="Variant.Outlined"
+                                      Counter="20"
+                                      MaxLength="20"
+                                      Immediate="true"
+                                      @bind-Value="@applicant.City"
+                                      Required="true"
+                                      Class="mt-1" />
+                        <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4" FullWidth="true">Save application</MudButton>
+                    </EditForm>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    int _userId;
+    string _userRole;
+    [Parameter] public int PetId { get; set; }
+    [Parameter] public int AdId { get; set; }
+    [Parameter] public int ApplicantId { get; set; }
+
+    bool IsOwner = false;
+    bool IsApplicant = false;
+    bool IsAdmin = false;
+
+    public PetDto? pet;
+    public AdDto? ad;
+    public ApplicantDto? applicant = new();
+
+    bool _error = false;
+    string _errorText = "You must be logged in as a applicant to apply for a job.";
+
+    bool _settingToken = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (_loggedIn)
+        {
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
+            _userRole = user.FindFirst("role")?.Value ?? "applicant";
+
+            if (_userRole == "owner")
+            {
+                IsOwner = true;
+            }
+            else if (_userRole == "applicant")
+            {
+                IsApplicant = true;
+            }
+            else if (_userRole == "admin")
+            {
+                IsOwner = true;
+                IsApplicant = true;
+                IsAdmin = true;
+            }
+        }
+
+        applicant = await httpClient.GetFromJsonAsync<ApplicantDto>($"api/pets/{PetId}/ads/{AdId}/applicants/{ApplicantId}");
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && httpClient.DefaultRequestHeaders.Authorization == null)
+        {
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            _settingToken = false;
+        }
+    }
+
+    void Apply()
+    {
+        Navigate.NavigateTo($"/pets/{PetId}/ads/{AdId}/applicants/new");
+    }
+
+    private IEnumerable<string> ValidateName(string name)
+    {
+        if (!string.IsNullOrEmpty(name) && 20 < name?.Length)
+            yield return "Your name cannot be longer than 20 characters!";
+    }
+
+    private IEnumerable<string> ValidateEmail(string description)
+    {
+        if (!string.IsNullOrEmpty(description) && 50 < description?.Length)
+            yield return "Your email cannot be longer than 50 characters!";
+    }
+
+    private IEnumerable<string> ValidateDescription(string description)
+    {
+        if (!string.IsNullOrEmpty(description) && 400 < description?.Length)
+            yield return "Your description cannot be longer than 400 characters!";
+    }
+
+    private async Task InvalidSubmit()
+    {
+        await DialogService.ShowMessageBox("Error", "Please correct any missing fields before saving.");
+    }
+}

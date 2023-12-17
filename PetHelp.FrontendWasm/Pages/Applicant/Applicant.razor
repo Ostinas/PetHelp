@@ -1,0 +1,174 @@
+﻿@page "/pets/{PetId:int}/ads/{AdId:int}/applicants/{ApplicantId:int}"
+
+@inject NavigationManager Navigate
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject HttpClient httpClient
+@inject IDialogService DialogService
+
+<PageTitle>Applicant information</PageTitle>
+
+<MudContainer Class="mt-16 px-8">
+    <MudGrid>
+        <MudItem xs="12" sm="12" md="12" lg="10" xl="8" Class="mx-auto">
+            <MudPaper Elevation="2" Class="pa-4 my-2">
+                @if (ad == null || pet == null || applicant == null)
+                {
+                    <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto" />
+                    </MudContainer>
+                }
+                else
+                {
+                    <div style="display: flex; justify-content: center;">
+                        <MudText Typo="Typo.h4">Ad information</MudText>
+                    </div>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.h5">@ad.PetName</MudText>
+                        </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudText Typo="Typo.subtitle1">@pet.Description</MudText>
+                        </MudItem>
+                    <MudDivider />
+                    <MudGrid>
+                        <MudItem xs="12" sm="3">
+                            <MudText Typo="Typo.h6" Class="mt-2">Age (in years)</MudText>
+                            <MudText Typo="Typo.subtitle1">@pet.Age</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="2">
+                                <MudText Typo="Typo.h6" Class="mt-1">Gender</MudText>
+                                <MudText Typo="Typo.subtitle1">@pet.Sex</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="2">
+                                <MudText Typo="Typo.h6" Class="mt-1">Owner</MudText>
+                                <MudText Typo="Typo.subtitle1">@pet.OwnerName</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="3">
+                                <MudText Typo="Typo.h6" Class="mt-1">Meeting address</MudText>
+                                <MudText Typo="Typo.subtitle1">@ad.MeetingAddress</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="2">
+                                <MudText Typo="Typo.h6" Class="mt-1">Pay</MudText>
+                                <MudText Typo="Typo.subtitle1">@ad.Pay</MudText>
+                            </MudItem>
+                        </MudGrid>
+                    <MudDivider />
+                    <MudGrid Class="mt-1">
+                        <MudItem xs="12" sm="2">
+                            <MudText Typo="Typo.h6">Care start date</MudText>
+                            <MudText Typo="Typo.subtitle1">@pet.CareStart</MudText>
+                            </MudItem>
+                            <MudItem xs="12" sm="2">
+                                <MudText Typo="Typo.h6">Care end date</MudText>
+                                <MudText Typo="Typo.subtitle1">@pet.CareEnd</MudText>
+                            </MudItem>
+                        </MudGrid>
+                    <MudDivider Class="mt-2" />
+
+                    <div style="display: flex; justify-content: center;">
+                        <MudText Class="mt-2" Typo="Typo.h4">Applicant information</MudText>
+                    </div>
+                    <MudGrid Class="mt-1">
+                        <MudItem xs="12" sm="3">
+                            <MudText Typo="Typo.h6">Applicant name</MudText>
+                            <MudText Typo="Typo.subtitle1">@applicant.Name</MudText>
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudText Typo="Typo.h6">Email</MudText>
+                            <MudText Typo="Typo.subtitle1">@applicant.Email</MudText>
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudText Typo="Typo.h6">Phone number</MudText>
+                            <MudText Typo="Typo.subtitle1">@applicant.PhoneNumber</MudText>
+                        </MudItem>
+                        <MudItem xs="12" sm="3">
+                            <MudText Typo="Typo.h6">City</MudText>
+                            <MudText Typo="Typo.subtitle1">@applicant.City</MudText>
+                        </MudItem>
+                    </MudGrid>
+                    <MudItem xs="12" sm="12">
+                        <MudText Typo="Typo.h6">Description</MudText>
+                        <MudTextField T="string"
+                                      Disabled="true"
+                                      Variant="Variant.Outlined"
+                                      Lines="6"
+                                      @bind-Value="@applicant.Description"
+                                      Class="mt-1" />
+                    </MudItem>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    int _userId;
+    string _userRole;
+    [Parameter] public int PetId { get; set; }
+    [Parameter] public int AdId { get; set; }
+    [Parameter] public int ApplicantId { get; set; }
+
+    bool IsOwner = false;
+    bool IsApplicant = false;
+    bool IsAdmin = false;
+
+    public PetDto? pet;
+    public AdDto? ad;
+    public ApplicantDto? applicant;
+
+    bool _settingToken = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (_loggedIn)
+        {
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
+            _userRole = user.FindFirst("role")?.Value ?? "applicant";
+
+            if (_userRole == "owner")
+            {
+                IsOwner = true;
+            }
+            else if (_userRole == "applicant")
+            {
+                IsApplicant = true;
+            }
+            else if (_userRole == "admin")
+            {
+                IsOwner = true;
+                IsApplicant = true;
+                IsAdmin = true;
+            }
+
+            pet = await httpClient.GetFromJsonAsync<PetDto>($"api/pets/{PetId}");
+            ad = await httpClient.GetFromJsonAsync<AdDto>($"api/pets/{PetId}/ads/{AdId}");
+            applicant = await httpClient.GetFromJsonAsync<ApplicantDto>($"api/pets/{PetId}/ads/{AdId}/applicants/{ApplicantId}");
+            StateHasChanged();
+        }
+        else
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged in to view this information.");
+            Navigate.NavigateTo("/");
+            return;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && httpClient.DefaultRequestHeaders.Authorization == null)
+        {
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            _settingToken = false;
+        }
+    }
+
+    void Apply()
+    {
+        Navigate.NavigateTo($"/pets/{PetId}/ads/{AdId}/applicants/new");
+    }
+}

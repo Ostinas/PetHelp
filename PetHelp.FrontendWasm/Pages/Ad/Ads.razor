@@ -81,7 +81,7 @@
                 }
                 else if (LatestAds.Count == 0)
                 {
-                    <MudText Typo="Typo.subtitle1" Class="px-4 pb-3">There are no other ads currently</MudText>
+                    <MudText Typo="Typo.subtitle1" Class="px-4 pb-3">There are no acttive ads currently</MudText>
                 }
                 else
                 {
@@ -150,7 +150,7 @@
         _loggingIn = false;
 
         var allPets = await httpClient.GetFromJsonAsync<List<PetDto>>("api/pets");
-        var petIds = allPets.Where(p => p.CareStart != null).ToList();
+        var petIds = allPets.Where(p => p.CareStart != null && p.OwnerId != _userId).ToList();
 
         var allAdTasks = petIds.Select(pet => httpClient.GetFromJsonAsync<List<AdDto>>($"api/pets/{pet.Id}/ads")).ToList();
         var allAds = await Task.WhenAll(allAdTasks);
@@ -162,10 +162,8 @@
 
         if (_isOwner)
         {
-            var pets = await httpClient.GetFromJsonAsync<List<PetDto>>("api/pets");
-            OwnerPets = pets.Where(p => p.OwnerId == _userId).ToList();
-
-            var adTasks = pets.Select(pet => httpClient.GetFromJsonAsync<List<AdDto>>($"api/pets/{pet.Id}/ads")).ToList();
+            var ownerPetIds = allPets.Where(p => p.CareStart != null && p.OwnerId == _userId).ToList();
+            var adTasks = ownerPetIds.Select(pet => httpClient.GetFromJsonAsync<List<AdDto>>($"api/pets/{pet.Id}/ads")).ToList();
             var ads = await Task.WhenAll(adTasks);
             OwnerAds = new();
             foreach (var adList in ads)

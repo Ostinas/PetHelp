@@ -37,7 +37,7 @@
                                       MaxLength="2000"
                                       Variant="Variant.Outlined"
                                       Validation="@(new Func<string, IEnumerable<string>>(ValidateDescription))" Immediate="true"
-                                      Placeholder="Description (required)"
+                                      Placeholder="Description"
                                       @bind-Value="@pet.Description"
                                       FullWidth="true"
                                       Lines="10"
@@ -125,7 +125,29 @@
 
     private async Task CreatePet()
     {
-        
+        try
+        {
+            var token = await TokenAuthStateProvider.GetTokenRawAsync();
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            pet.OwnerId = _userId;
+            var response = await httpClient.PostAsJsonAsync($"api/pets/", pet);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                await DialogService.ShowMessageBox("Error", "An error occurred while adding pet.");
+            }
+            else
+            {
+                var newPet = await response.Content.ReadFromJsonAsync<Pet>();
+                await DialogService.ShowMessageBox("Success", "You have successfully added a new pet.");
+                Navigate.NavigateTo($"/pets/{newPet.Id}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowMessageBox("Error", $"An error occurred: {ex.Message}");
+        }
     }
 
     private async Task InvalidSubmit()

@@ -41,6 +41,7 @@ namespace PetHelp.Repositories
                     Sex = pet.Sex.ToString(),
                     Age = pet.Age,
                     OwnerName = pet.Owner.Name,
+                    OwnerId = pet.OwnerId,
                     CareStart = pet.Ad.CareStart,
                     CareEnd = pet.Ad.CareEnd
                 }).FirstOrDefaultAsync();

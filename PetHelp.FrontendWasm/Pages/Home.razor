@@ -9,67 +9,33 @@
 <MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
     <MudGrid>
         <!-- Actions -->
-        <MudItem lg="6" md="6" sm="12" xs="12">
-            <MudPaper Elevation="2" Class="pa-4 overflow-auto" Height="17vh">
-                @if (_loggingIn)
-                {
-                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" Class="ma-4" />
-                }
-
-                @if (_loggedIn)
-                {
-                    <!-- Authenticated -->
-                    @if (_isApplicant)
-                    {
-
-                        <MudButton Href="/applications" FullWidth="true" Variant="Variant.Outlined">
-                            <ChildContent>
-                                <MudIcon Icon="@Icons.Material.Outlined.WorkOutline" Class="mr-1" />
-                                <MudText Typo="Typo.button" Color="Color.Inherit">View applications</MudText>
-                            </ChildContent>
-                        </MudButton>
-
-                    }
-
-                    if (_isOwner)
-                    {
-                        <MudListItem>
-                            <MudButton Href="/pets" FullWidth="true" Variant="Variant.Outlined">
-                                <ChildContent>
-                                    <MudIcon Icon="@Icons.Material.Outlined.Pets" Class="mr-1" />
-                                    <MudText Typo="Typo.button" Color="Color.Inherit">Add a new pet</MudText>
-                                </ChildContent>
-                            </MudButton>
-                        </MudListItem>
-                    }
-                }
-                else if (!_loggingIn)
-                {
-                    <!-- Not authenticated -->
+        @if (_loggedIn && _isOwner)
+        {
+            <MudItem lg="6" md="6" sm="12" xs="12">
+                <MudPaper Elevation="2" Class="pa-4 overflow-auto" Height="17vh">
                     <MudListItem>
-                        <MudButton Href="/login" FullWidth="true" Variant="Variant.Outlined">
+                        <MudButton Href="/pets" FullWidth="true" Variant="Variant.Outlined">
                             <ChildContent>
-                                <MudIcon Icon="@Icons.Material.Outlined.ExitToApp" Class="mr-1" />
-                                <MudText Typo="Typo.button" Color="Color.Inherit">Login</MudText>
+                                <MudIcon Icon="@Icons.Material.Outlined.Pets" Class="mr-1" />
+                                <MudText Typo="Typo.button" Color="Color.Inherit">Add a new pet</MudText>
                             </ChildContent>
                         </MudButton>
                     </MudListItem>
-                }
-
             </MudPaper>
         </MudItem>
+        }
 
-        <MudItem lg="6" md="6" sm="12" xs="12">
-            <MudPaper Elevation="2" Class="pa-4" Height="17vh">
+        <MudItem lg="3" md="3" sm="12" xs="12">
+            <MudPaper Elevation="2" Class="pa-4" Height="25vh">
                 <MudCarousel Class="mud-width-full" style="height:100%" ShowArrows="false" ShowBullets="false" EnableSwipeGesture="false" AutoCycle="true" TData="object">
                     <MudCarouselItem Transition="Transition.Slide" Color="@Color.Primary">
-                        <MudImage Src="images/1.png" Fluid="true" ObjectFit="ObjectFit.Cover"></MudImage>
+                        <MudImage Src="images/1.jpg" Fluid="true" ObjectFit="ObjectFit.Fill"></MudImage>
                     </MudCarouselItem>
                     <MudCarouselItem Transition="Transition.Slide" Color="@Color.Secondary">
-                        <MudImage Src="images/2.jpg" Fluid="true" ObjectFit="ObjectFit.Cover"></MudImage>
+                        <MudImage Src="images/2.jpg" Fluid="true" ObjectFit="ObjectFit.Fill"></MudImage>
                     </MudCarouselItem>
                     <MudCarouselItem Transition="Transition.Slide">
-                        <MudImage Src="images/3.jpg" Fluid="true" ObjectFit="ObjectFit.Cover"></MudImage>
+                        <MudImage Src="images/3.jpg" Fluid="true" ObjectFit="ObjectFit.Fill"></MudImage>
                     </MudCarouselItem>
                 </MudCarousel>
             </MudPaper>
@@ -107,7 +73,15 @@
         <!-- All pets -->
         <MudItem xs="12" sm="12">
             <MudPaper Elevation="2" Class="pa-4; overflow-auto" MaxHeight="1000px">
-                <MudText Typo="Typo.h5" Class="pa-4">Pets of other owners</MudText>
+                @if (_isOwner)
+                {
+                    <MudText Typo="Typo.h5" Class="pa-4">Pets of other owners</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h5" Class="pa-4">All pets</MudText>
+                }
+
                 @if (AllPets == null)
                 {
                     <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="ml-10" />
@@ -188,8 +162,7 @@
 
         if (_isOwner)
         {
-            var pets = await httpClient.GetFromJsonAsync<List<PetDto>>("api/pets");
-            OwnerPets = pets.Where(p => p.OwnerId == _userId).ToList();
+            OwnerPets = AllPets.Where(p => p.OwnerId == _userId).ToList();
             AllPets = AllPets.Where(pet => !OwnerPets.Any(ownerPet => ownerPet.Id == pet.Id)).ToList();
         }
         

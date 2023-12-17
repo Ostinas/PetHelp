@@ -1,0 +1,158 @@
+﻿@page "/applicants"
+
+@inject TokenAuthStateProvider TokenAuthStateProvider
+@inject HttpClient httpClient
+@inject IDialogService DialogService
+@inject NavigationManager Navigate
+
+<PageTitle>Applicants</PageTitle>
+
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+    <MudGrid>
+        @if (Applicants != null)
+        {
+            <MudItem xs="12" sm="12">
+                <MudPaper Elevation="2" Class="pa-4; overflow-auto" MaxHeight="1000px">
+                    <MudText Typo="Typo.h5" Class="pa-4">Applicants to my ads</MudText>
+                    <MudList Clickable="true">
+                        @foreach (var applicant in Applicants)
+                        {
+                            <MudDivider />
+                            <MudListItem @onclick="(e) => OpenApplication((int)applicant.Id, applicant.AdId, applicant.PetId) ">
+                                <MudText Typo="Typo.h5">@applicant.Name applying for care of @applicant.PetName</MudText>
+                                <MudText>@applicant.City</MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudPaper>
+            </MudItem>
+        }
+        else
+        {
+            <MudContainer Class="d-flex flex-column justify-content-center align-items-center">
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" Class="mx-auto" />
+            </MudContainer>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    bool _loggedIn = false;
+    bool _loggingIn = true;
+    int _userId;
+    string _userRole;
+
+    bool _isOwner = false;
+    bool _isApplicant = false;
+    bool _isAdmin = false;
+
+    List<AdDto>? LatestAds;
+    List<Owner> AllOwners = new List<Owner>();
+    List<AdDto>? OwnerAds;
+    List<ApplicantDto>? Applicants;
+    List<PetDto> OwnerPets = new List<PetDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await TokenAuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        _loggedIn = authState.User.Identity.IsAuthenticated;
+
+        if (_loggedIn)
+        {
+            _userId = int.Parse(user.FindFirst("nameid")?.Value ?? "-1");
+            _userRole = user.FindFirst("role")?.Value ?? "applicant";
+
+            if (_userRole == "owner")
+            {
+                _isOwner = true;
+            }
+            else if (_userRole == "applicant")
+            {
+                _isApplicant = true;
+            }
+            else if (_userRole == "admin")
+            {
+                _isOwner = true;
+                _isApplicant = true;
+                _isAdmin = true;
+            }
+        }
+        _loggingIn = false;
+
+        if (_isOwner)
+        {
+            var pets = await httpClient.GetFromJsonAsync<List<PetDto>>("api/pets");
+            OwnerPets = pets.Where(p => p.OwnerId == _userId && p.CareStart != null).ToList();
+
+            var adTasks = pets.Select(pet => httpClient.GetFromJsonAsync<List<AdDto>>($"api/pets/{pet.Id}/ads")).ToList();
+            var ads = await Task.WhenAll(adTasks);
+            OwnerAds = new();
+            foreach (var adList in ads)
+            {
+                OwnerAds.AddRange(adList);
+            }
+
+            var applicantTasks = OwnerAds.Select(ad => httpClient.GetFromJsonAsync<List<ApplicantDto>>($"api/pets/{ad.PetId}/ads/{ad.Id}/applicants")).ToList();
+            var applicants = await Task.WhenAll(applicantTasks);
+            Applicants = new();
+            foreach (var applicantList in applicants)
+            {
+                Applicants.AddRange(applicantList);
+            }
+        }
+        else
+        {
+            await DialogService.ShowMessageBox("Error", "You must be logged in and an owner to view your applicants.");
+            Navigate.NavigateTo("/");
+            return;
+        }
+    }
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (!firstRender && httpClient.DefaultRequestHeaders.Authorization == null)
+    //     {
+    //         var token = await TokenAuthStateProvider.GetTokenRawAsync();
+    //         httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+    //         if (_isOwner && !_isAdmin)
+    //         {
+    //             AllOwners.Add(await httpClient.GetFromJsonAsync<Owner>($"api/owners/{_userId}"));
+
+    //             var adTasks = AllOwners.Select(owner => httpClient.GetFromJsonAsync<List<Ad>>($"api/owners/{owner.Id}/ads")).ToList();
+    //             var ads = await Task.WhenAll(adTasks);
+    //             foreach (var adList in ads)
+    //             {
+    //                 AllAds.AddRange(adList);
+    //             }
+    //             var applicationTasks = AllAds.Select(ad => httpClient.GetFromJsonAsync<List<ApplicationResponseVM>>($"api/companies/{ad.Company.Id}/ads/{ad.Id}/applications")).ToList();
+    //             var applications = await Task.WhenAll(applicationTasks);
+    //             foreach (var applicationList in applications)
+    //             {
+    //                 AllApplications.AddRange(applicationList);
+    //             }
+    //             AllApplications = AllApplications.OrderByDescending(a => a.ApplicationDate).ToList();
+    //             _loading = false;
+    //             StateHasChanged();
+    //         }
+    //     }
+    // }
+
+    // private void OpenAdDialog(Ad selectedAd)
+    // {
+    //     var parameters = new DialogParameters<HomeAdDialog>();
+    //     parameters.Add("Ad", selectedAd);
+    //     parameters.Add("LoggedIn", _loggedIn);
+    //     parameters.Add("IsOwner", _isOwner);
+    //     parameters.Add("IsAdOwner", _userId == selectedAd.Owner.Id);
+    //     parameters.Add("UserId", _userId);
+    //     var options = new DialogOptions { CloseOnEscapeKey = true };
+    //     DialogService.Show<HomeAdDialog>(selectedAd.Pet.Name, parameters, options);
+    // }
+
+    private void OpenApplication(int applicantId, int adId, int petId)
+    {
+        Navigate.NavigateTo($"/pets/{petId}/ads/{adId}/applicants/{applicantId}");
+    }
+}

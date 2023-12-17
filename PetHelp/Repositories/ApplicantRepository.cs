@@ -13,15 +13,21 @@ namespace PetHelp.Repositories
         {
             return await _context.Applicants
                 .Where(a => a.Ads.Any(a => a.Id == adId && a.PetId == petId))
+                .Include(p => p.Ads)
+                    .ThenInclude(p => p.Pet)
                 .Select(a => new ApplicantDto
                 {
+                    Id = a.Id,
                     Name = a.Name,
                     Description = a.Description,
                     Email = a.Email,
                     Password = a.Password,
                     PhoneNumber = a.PhoneNumber,
                     Address = a.Address,
-                    City = a.City
+                    City = a.City,
+                    PetId = a.Ads.First().PetId,
+                    AdId = (int)a.Ads.First().Id,
+                    PetName = a.Ads.First().Pet.Name
                 })
                 .ToListAsync();
         }
@@ -29,9 +35,10 @@ namespace PetHelp.Repositories
         public async Task<ApplicantDto> GetApplicant(int id, int petId, int adId)
         {
             return await _context.Applicants
-                .Where(a => a.Ads.Any(a => a.Id == adId && a.PetId == petId && a.Id == id))
+                .Where(a => a.Id == id)
                 .Select(a => new ApplicantDto
                 {
+                    Id = a.Id,
                     Name = a.Name,
                     Description = a.Description,
                     Email = a.Email,

@@ -17,7 +17,6 @@ namespace PetHelp.Controllers
 
         // GET: api/pets/{petId}/ads/{adId}/Applicants
         [HttpGet]
-        [Authorize(Roles = "owner,admin")]
         public async Task<ActionResult<List<ApplicantDto>>> GetApplicants(int petId, int adId)
         {
             var pet = await _petRepository.GetPet(petId);
@@ -43,7 +42,6 @@ namespace PetHelp.Controllers
 
         // GET: api/pets/{petId}/ads/{adId}/Applicants/5
         [HttpGet("{id}")]
-        [Authorize(Roles = "owner,admin")]
         public async Task<ActionResult<ApplicantDto>> GetApplicant(int petId, int adId, int id)
         {
             var pet = await _petRepository.GetPet(petId);
@@ -130,9 +128,9 @@ namespace PetHelp.Controllers
             {
                 applicant = await _applicantRepository.PostApplicant(applicant, petId, adId);
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(ex);
             }
 
             return CreatedAtAction("GetApplicant", applicant.Id, applicant);
