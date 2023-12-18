@@ -24,6 +24,12 @@
                         <MudText Typo="Typo.subtitle1">@pet.Description</MudText>
                         </MudItem>
                     <MudDivider />
+                    @if (ad.Pay > 0) {
+                        <MudItem xs="12" sm="6">
+                            <MudText Typo="Typo.h6" Class="mt-2">Pay for care</MudText>
+                            <MudText Typo="Typo.subtitle1">€@ad.Pay</MudText>
+                        </MudItem>
+                        }
                     <MudItem xs="12" sm="6">
                         <MudText Typo="Typo.h6" Class="mt-2">Age (in years)</MudText>
                         <MudText Typo="Typo.subtitle1">@pet.Age</MudText>
